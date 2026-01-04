@@ -1,0 +1,6 @@
+{
+    "moeda_nome": "Krugs",
+    "prefixo": "!",
+    "valor_trabalho_base": 100,
+    "cooldown_trabalho": 3600
+}

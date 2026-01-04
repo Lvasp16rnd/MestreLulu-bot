@@ -1,6 +1,5 @@
 .env
 __pycache__/
-config.json
 dados.json
 *.py[cod]
 *$py.class
