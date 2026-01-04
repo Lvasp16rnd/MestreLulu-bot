@@ -30,6 +30,22 @@ def eh_admin(ctx):
 async def on_ready():
     print(f"🐾 Mestre Lulu online como {bot.user}")
 
+@bot.command()
+async def menu(ctx):
+    # Verifica se o usuário já tem um menu aberto para não poluir o chat
+    if ctx.author.id in usuarios_em_menu:
+        return await ctx.reply("🐾 **Lulu:** Você já tem um menu aberto! Use-o ou espere ele expirar.")
+    
+    view = MenuRPG(ctx)
+    usuarios_em_menu.add(ctx.author.id)
+    
+    # Define o que acontece quando o menu expira (timeout)
+    async def on_timeout():
+        usuarios_em_menu.discard(ctx.author.id)
+    view.on_timeout = on_timeout
+
+    await ctx.send(f"🐾 **Mestre Lulu observa...** O que deseja, {ctx.author.name}?", view=view)
+
 # --- COMANDOS DE PERSONAGEM ---
 @bot.command()
 async def registrar(ctx):

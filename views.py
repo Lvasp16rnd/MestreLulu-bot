@@ -62,3 +62,33 @@ class LojaView(discord.ui.View):
             embed.add_field(name=nome, value=f"💰 {info['preco']} Krugs\n*{info['desc']}*", inline=False)
             
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+class MenuRPG(discord.ui.View):
+    def __init__(self, ctx):
+        super().__init__(timeout=60)
+        self.ctx = ctx
+
+    @discord.ui.button(label="Minha Ficha", style=discord.ButtonStyle.blurple, emoji="📜")
+    async def ver_ficha(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user != self.ctx.author:
+            return await interaction.response.send_message("Este menu não é seu!", ephemeral=True)
+        
+        # Chama o comando ficha internamente
+        await self.ctx.invoke(self.ctx.bot.get_command('ficha'))
+        await interaction.response.defer()
+
+    @discord.ui.button(label="Abrir Inventário", style=discord.ButtonStyle.green, emoji="🎒")
+    async def ver_inv(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user != self.ctx.author:
+            return await interaction.response.send_message("Este menu não é seu!", ephemeral=True)
+            
+        await self.ctx.invoke(self.ctx.bot.get_command('inventario'))
+        await interaction.response.defer()
+
+    @discord.ui.button(label="Visitar Loja", style=discord.ButtonStyle.gray, emoji="💰")
+    async def ver_loja(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user != self.ctx.author:
+            return await interaction.response.send_message("Este menu não é seu!", ephemeral=True)
+            
+        await self.ctx.invoke(self.ctx.bot.get_command('loja'))
+        await interaction.response.defer()
