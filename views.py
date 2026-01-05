@@ -70,22 +70,25 @@ class MenuRPG(discord.ui.View):
         user_id = str(ctx.author.id)
         dados = carregar_dados()
         
-        # Verifica se o usuário já tem registro
         self.tem_ficha = user_id in dados["usuarios"]
         self.ajustar_botoes()
 
+    # TRAVA DE SEGURANÇA: Só o dono do menu pode clicar
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user != self.ctx.author:
+            await interaction.response.send_message("🐾 **Lulu:** Este menu não te pertence, intrometido!", ephemeral=True)
+            return False
+        return True
+
     def ajustar_botoes(self):
-        # Limpa os botões existentes para reconstruir
         self.clear_items()
-        
         if not self.tem_ficha:
-            # Botão para quem NÃO tem ficha
-            btn_registrar = discord.ui.Button(label="Criar Ficha (Registrar)", style=discord.ButtonStyle.green, emoji="✨")
+            btn_registrar = discord.ui.Button(label="Criar Ficha", style=discord.ButtonStyle.green, emoji="✨")
             btn_registrar.callback = self.registrar_callback
             self.add_item(btn_registrar)
         else:
-            # Botões para quem JÁ TEM ficha
-            btn_ficha = discord.ui.Button(label="Minha Ficha", style=discord.ButtonStyle.blurple, emoji="📜")
+            # Seus botões de Ficha, Inv e Loja...
+            btn_ficha = discord.ui.Button(label="Ficha", style=discord.ButtonStyle.blurple, emoji="📜")
             btn_ficha.callback = self.ver_ficha_callback
             self.add_item(btn_ficha)
 
@@ -96,17 +99,17 @@ class MenuRPG(discord.ui.View):
             btn_loja = discord.ui.Button(label="Loja", style=discord.ButtonStyle.gray, emoji="💰")
             btn_loja.callback = self.ver_loja_callback
             self.add_item(btn_loja)
-
-        # Botão de Sair sempre aparece
+            
         btn_sair = discord.ui.Button(label="Sair do Menu", style=discord.ButtonStyle.red, emoji="❌")
         btn_sair.callback = self.sair_callback
         self.add_item(btn_sair)
 
-    # --- CALLBACKS (O que cada botão faz) ---
+    # --- CALLBACKS ---
     async def registrar_callback(self, interaction: discord.Interaction):
-        await interaction.response.defer()
+        # Removemos o menu para não dar conflito com o registro por texto/menu
+        await interaction.response.edit_message(content="🐾 **Lulu:** Iniciando registro...", view=None)
         await self.ctx.invoke(self.ctx.bot.get_command('registrar'))
-        self.stop() # Fecha o menu após iniciar o registro
+        self.stop()
 
     async def ver_ficha_callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -121,7 +124,7 @@ class MenuRPG(discord.ui.View):
         await self.ctx.invoke(self.ctx.bot.get_command('loja'))
 
     async def sair_callback(self, interaction: discord.Interaction):
-        await interaction.response.edit_message(content="🐾 **Mestre Lulu:** Até logo, viajante.", view=None)
+        await interaction.response.edit_message(content="🐾 **Mestre Lulu:** O menu foi fechado.", view=None)
         self.stop()
 
 class SelecaoRacaView(discord.ui.View):

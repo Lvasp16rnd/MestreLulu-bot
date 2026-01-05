@@ -263,4 +263,69 @@ async def setar(ctx, alvo: discord.Member, at: str, v: int):
         salvar_dados(dados)
         await ctx.send(f"✅ {at} de {alvo.name} setado para {v}.")
 
+# --- SISTEMA DE COMBATE (ARENA) ---
+@bot.command()
+async def batalha(ctx, op1: discord.Member, op2: discord.Member):
+    """Inicia um duelo entre dois jogadores usando a BatalhaView."""
+    if not eh_admin(ctx): 
+        return await ctx.send("🐾 **Lulu:** Apenas mestres podem abrir a arena.")
+        
+    dados = carregar_dados()
+    p1 = dados["usuarios"].get(str(op1.id))
+    p2 = dados["usuarios"].get(str(op2.id))
+
+    if not p1 or not p2:
+        return await ctx.send("🐾 **Lulu:** Ambos os duelistas precisam de uma ficha registrada.")
+
+    # Injetamos os IDs para a View saber quem é quem
+    p1["user_id"], p2["user_id"] = str(op1.id), str(op2.id)
+
+    # Criamos a arena (Aqui o BatalhaView é finalmente acessado!)
+    view = BatalhaView(ctx.author, p1, p2, dados)
+    
+    embed = discord.Embed(
+        title="⚔️ ARENA DE OCULTA ⚔️",
+        description=f"O duelo entre **{p1['nome']}** e **{p2['nome']}** começou!",
+        color=0xff0000
+    )
+    embed.add_field(name=p1['nome'], value=f"❤️ {p1['pv']} PV", inline=True)
+    embed.add_field(name=p2['nome'], value=f"❤️ {p2['pv']} PV", inline=True)
+    
+    await ctx.send(embed=embed, view=view)
+
+# --- SISTEMA DE EVENTOS NARRATIVOS ---
+@bot.command()
+async def evento(ctx, nome: str, dt: int, atributo: str, dano: int):
+    """
+    Cria um desafio para TODOS os jogadores com ficha.
+    Ex: !evento "Ponte Caindo" 15 agilidade 10
+    """
+    if not eh_admin(ctx): return
+    
+    dados = carregar_dados()
+    resumo = [f"🌋 **EVENTO: {nome}**", f"🎯 **Teste:** {atributo.upper()} (DT {dt})", "---"]
+    
+    # Atributo informado deve ser um dos 5 válidos
+    at_busca = atributo.lower()
+    
+    for uid, p in dados["usuarios"].items():
+        # Bônus do atributo do jogador
+        bonus = p["atributos"].get(at_busca, 0)
+        roll = random.randint(1, 20)
+        total = roll + bonus
+        
+        if total >= dt:
+            resumo.append(f"✅ **{p['nome']}** passou! ({roll} + {bonus} = {total})")
+        else:
+            # Aqui o aplicar_dano_complexo é finalmente acessado!
+            # Ele calcula o escudo e verifica se a Fada salva o jogador
+            log_dano, morto = aplicar_dano_complexo(p, dano)
+            resumo.append(f"❌ **{p['nome']}** falhou! {log_dano}")
+
+    # Salva as alterações de PV/Itens (Fadas) de todos os jogadores
+    salvar_dados(dados)
+    
+    embed = discord.Embed(description="\n".join(resumo), color=0xffa500)
+    await ctx.send(embed=embed)
+
 bot.run(TOKEN)
