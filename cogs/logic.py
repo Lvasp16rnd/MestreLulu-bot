@@ -94,3 +94,10 @@ def usar_pocao_sorte(usuario_data):
         item = random.choice(constantes.RECOMPENSAS_SORTE)
         usuario_data["inventario"].append(item)
         return f"🎁 O destino foi generoso! Você ganhou: **{item}**.", item
+
+def calcular_dano_nivel(nivel):
+    if nivel <= 2: return "1d6"
+    if nivel <= 5: return "1d8"
+    if nivel <= 10: return "2d6"
+    if nivel <= 15: return "2d8"
+    return "3d6" # Nível 16-20    

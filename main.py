@@ -12,7 +12,7 @@ from cogs.combate import BatalhaView
 from views import LojaView, MenuRPG 
 import constantes
 from database import carregar_dados, salvar_dados
-from cogs.logic import aplicar_dano_complexo, usar_pocao_sorte, rolar_dado
+from cogs.logic import aplicar_dano_complexo, calcular_dano_nivel, usar_pocao_sorte, rolar_dado
 
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
@@ -127,33 +127,73 @@ async def usar(ctx, *, habilidade: str):
     p = dados["usuarios"].get(user_id)
     if not p: return await ctx.send("🐾 **Lulu:** Sem alma.")
 
-    # Verifica se tem a habilidade por nível
+    # 1. VALIDAÇÃO DE NÍVEL (Seu código mantido)
     hab_liberadas = []
     if p["raca"] in constantes.HABILIDADES_RACA:
         for faixa, lista in constantes.HABILIDADES_RACA[p["raca"]].items():
-            if p["nivel"] >= int(faixa.split('-')[0]): hab_liberadas.extend(lista)
+            if p["nivel"] >= int(faixa.split('-')[0]): 
+                hab_liberadas.extend([h.lower() for h in lista])
 
-    if habilidade.title() not in hab_liberadas:
-        return await ctx.send("🐾 **Lulu:** Você não conhece essa técnica ou é muito fraco.")
+    if habilidade.lower() not in hab_liberadas:
+        return await ctx.send(f"🐾 **Lulu:** Você não conhece '{habilidade}' ou seu nível ({p['nivel']}) é baixo demais.")
 
-    # Rolagem com Azar Acumulado
+    # 2. CARREGAR DADOS DO JSON
+    try:
+        with open("habilidades.json", "r", encoding="utf-8") as f:
+            biblioteca = json.load(f)
+        dados_hab = biblioteca.get(p["raca"], {}).get(habilidade.title())
+    except Exception:
+        return await ctx.send("⚠️ **Erro:** Verifique o arquivo habilidades.json.")
+
+    if not dados_hab:
+        return await ctx.send(f"⚠️ **Erro:** '{habilidade}' não detalhada no JSON.")
+
+    # 3. SISTEMA DE AZAR (Seu código mantido)
     mod = -5 if p.get("azarado") else 0
     if p.get("azarado"): 
         p["azarado"] = False
         await ctx.send("⚠️ **O Azar Acumulado te atingiu! (-5)**")
 
+    # 4. ROLAGENS
     roll = random.randint(1, 20)
     total = max(1, roll + mod)
-    dano = rolar_dado(p.get("dado_nivel", "1d6")) + p["atributos"]["forca"]
+    dt_alvo = dados_hab["dt"]
+    
+    embed = discord.Embed(title=f"✨ {p['nome']} usou {habilidade.title()}", color=0x3498db)
+    
+    # 5. RESULTADOS (Sucesso)
+    if total >= dt_alvo:
+        # Verifica se a habilidade tem um dado fixo (ex: 1d6) ou usa o dano por nível
+        formato_dado = dados_hab.get("valor_fixo", calcular_dano_nivel(p["nivel"]))
+        valor_base = rolar_dado(formato_dado)
+        total_gerado = valor_base + p["atributos"]["forca"]
+        
+        embed.color = discord.Color.green()
+        
+        # Se for tipo Cura, aplica no PV automaticamente
+        if dados_hab.get("tipo") == "cura":
+            p["pv"] = min(p["pv_max"], p["pv"] + total_gerado)
+            embed.description = f"✅ **Sucesso!** (Rolagem: {total})\n{dados_hab['descricao']}\n\n💖 **Cura:** +{total_gerado} PV | ❤️ **Vida:** {p['pv']}/{p['pv_max']}"
+        else:
+            embed.description = f"✅ **Sucesso!** (Rolagem: {total})\n{dados_hab['descricao']}\n\n⚔️ **Resultado:** {total_gerado}"
+            
+    # 6. RESULTADOS (Falha)
+    else:
+        d4 = random.randint(1, 4)
+        consequencia = dados_hab["falha_1_2"] if d4 <= 2 else dados_hab["falha_3_4"]
+        
+        # Se a falha causar dano (1d4), aplica no PV automaticamente
+        dano_falha_texto = ""
+        if "1d4" in consequencia:
+            perda = random.randint(1, 4)
+            p["pv"] = max(0, p["pv"] - perda)
+            dano_falha_texto = f"\n💔 **Recuo:** -{perda} PV"
 
-    msg = f"🎲 **{p['nome']}** usou **{habilidade}**! Resultado: **{total}**\n"
-    if total <= 2: msg += "🌑 **RUÍNA!** O efeito ricocheteou."
-    elif total <= 15: msg += f"⚠️ **COMPLICAÇÃO!** O efeito ocorre, mas com intercorrências. Dano: {dano//2}"
-    elif total <= 19: msg += f"✅ **SUCESSO!** Ação realizada! Dano: {dano}"
-    else: msg += f"🌟 **GLÓRIA!** Recompensas e efeito máximo! Dano: {dano * 2}"
+        embed.color = discord.Color.red()
+        embed.description = f"❌ **Falha!** (Rolagem: {total})\n**Dado de Falha (d4):** {d4}\n\n**O que aconteceu:** {consequencia}{dano_falha_texto}"
 
     salvar_dados(dados)
-    await ctx.send(msg)
+    await ctx.send(embed=embed)
 
 @bot.command()
 async def beber(ctx, *, item: str):
