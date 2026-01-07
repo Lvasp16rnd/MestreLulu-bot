@@ -5,6 +5,7 @@ import json
 import random
 import os
 from dotenv import load_dotenv
+from views import SelecaoRacaView, DistribuiPontosView
 
 # Imports de Cogs e Views
 from cogs.combate import BatalhaView
@@ -32,19 +33,20 @@ async def on_ready():
 
 @bot.command()
 async def menu(ctx):
-    # Verifica se o usuário já tem um menu aberto para não poluir o chat
     if ctx.author.id in usuarios_em_menu:
         return await ctx.reply("🐾 **Lulu:** Você já tem um menu aberto! Use-o ou espere ele expirar.")
     
     view = MenuRPG(ctx)
     usuarios_em_menu.add(ctx.author.id)
     
-    # Define o que acontece quando o menu expira (timeout)
     async def on_timeout():
         usuarios_em_menu.discard(ctx.author.id)
     view.on_timeout = on_timeout
 
     await ctx.send(f"🐾 **Mestre Lulu observa...** O que deseja, {ctx.author.name}?", view=view)
+
+    await view.wait()
+    usuarios_em_menu.discard(ctx.author.id)
 
 # --- COMANDOS DE PERSONAGEM ---
 @bot.command()
@@ -52,37 +54,51 @@ async def registrar(ctx):
     user_id = str(ctx.author.id)
     dados = carregar_dados()
     if user_id in dados["usuarios"]:
-        return await ctx.send("🐾 **Mestre Lulu:** Você já possui uma alma registrada.")
+        return await ctx.send("🐾 **Mestre Lulu:** Tu já tens uma ficha.")
 
-    def check(m): return m.author == ctx.author and m.channel == ctx.channel
+    # 1. Seleção de Raça
+    view_raca = SelecaoRacaView(list(constantes.RACAS.keys()))
+    msg = await ctx.send("🐾 **Mestre Lulu:** Escolha sua linhagem:", view=view_raca)
+    await view_raca.wait()
+    
+    if not view_raca.raca_escolhida:
+        return await msg.edit(content="🐾 **Lulu:** Tempo esgotado.", view=None)
 
-    try:
-        await ctx.send(f"🐾 **Mestre Lulu:** Escolha sua linhagem:\n`{', '.join(constantes.RACAS.keys())}`")
-        msg_raca = await bot.wait_for("message", timeout=60.0, check=check)
-        raca_escolhida = msg_raca.content.capitalize()
-        if raca_escolhida not in constantes.RACAS:
-            return await ctx.send("🐾 **Mestre Lulu:** Essa raça não existe!")
+    raca = view_raca.raca_escolhida
 
-        await ctx.send("🐾 **Mestre Lulu:** Distribua **7 pontos** (Força, Agilidade, Intelecto, Presença, Carisma).\nEx: `1 2 1 2 1`")
-        msg_pts = await bot.wait_for("message", timeout=120.0, check=check)
-        
-        try:
-            pts = [int(p) for p in msg_pts.content.split()]
-            if len(pts) != 5 or sum(pts) != 7: raise ValueError
-        except ValueError:
-            return await ctx.send("🐾 **Mestre Lulu:** Matemática errada. Use 5 números que somam 7.")
+    # 2. Distribuição de Pontos
+    view_pts = DistribuiPontosView(ctx, raca)
+    await msg.edit(content=None, embed=view_pts.gerar_embed(), view=view_pts)
+    await view_pts.wait()
 
-        dados["usuarios"][user_id] = {
-            "nome": ctx.author.name, "raca": raca_escolhida, "nivel": 1, 
-            "pv": 30, "ca": 5, "dado_nivel": "1d6", "dinheiro": 500,
-            "atributos": {"forca": pts[0], "agilidade": pts[1], "intelecto": pts[2], "presenca": pts[3], "carisma": pts[4]},
-            "azarado": False, "inventario": []
-        }
-        salvar_dados(dados)
-        await ctx.send(f"✨ **Mestre Lulu:** Ficha de {ctx.author.name} tecida.")
-    except asyncio.TimeoutError:
-        await ctx.send("🐾 **Mestre Lulu:** Tempo esgotado.")
+    if not view_pts.finalizado:
+        return await msg.edit(content="🐾 **Lulu:** Cancelado por inatividade.", embed=None, view=None)
 
+    # 3. Salvando Tudo
+    # Mapeamos os nomes da View para as chaves do Banco de Dados
+    res = view_pts.attrs
+    dados["usuarios"][user_id] = {
+        "nome": ctx.author.name,
+        "raca": raca,
+        "nivel": 1, 
+        "pv": 30, 
+        "ca": 5, 
+        "dado_nivel": "1d6", 
+        "dinheiro": 500,
+        "atributos": {
+            "forca": res["Força"], 
+            "agilidade": res["Agilidade"], 
+            "intelecto": res["Intelecto"], 
+            "presenca": res["Presença"], 
+            "carisma": res["Carisma"]
+        },
+        "azarado": False, 
+        "inventario": []
+    }
+    
+    salvar_dados(dados)
+    await msg.edit(content=f"✨ **Mestre Lulu:** Ficha de {ctx.author.name} gravada! Bem-vindo ao RPG.", embed=None, view=None)
+      
 @bot.command()
 async def ficha(ctx, alvo: discord.Member = None):
     alvo = alvo or ctx.author
@@ -246,5 +262,70 @@ async def setar(ctx, alvo: discord.Member, at: str, v: int):
         else: dados["usuarios"][uid][at.lower()] = v
         salvar_dados(dados)
         await ctx.send(f"✅ {at} de {alvo.name} setado para {v}.")
+
+# --- SISTEMA DE COMBATE (ARENA) ---
+@bot.command()
+async def batalha(ctx, op1: discord.Member, op2: discord.Member):
+    """Inicia um duelo entre dois jogadores usando a BatalhaView."""
+    if not eh_admin(ctx): 
+        return await ctx.send("🐾 **Lulu:** Apenas mestres podem abrir a arena.")
+        
+    dados = carregar_dados()
+    p1 = dados["usuarios"].get(str(op1.id))
+    p2 = dados["usuarios"].get(str(op2.id))
+
+    if not p1 or not p2:
+        return await ctx.send("🐾 **Lulu:** Ambos os duelistas precisam de uma ficha registrada.")
+
+    # Injetamos os IDs para a View saber quem é quem
+    p1["user_id"], p2["user_id"] = str(op1.id), str(op2.id)
+
+    # Criamos a arena (Aqui o BatalhaView é finalmente acessado!)
+    view = BatalhaView(ctx.author, p1, p2, dados)
+    
+    embed = discord.Embed(
+        title="⚔️ ARENA DE OCULTA ⚔️",
+        description=f"O duelo entre **{p1['nome']}** e **{p2['nome']}** começou!",
+        color=0xff0000
+    )
+    embed.add_field(name=p1['nome'], value=f"❤️ {p1['pv']} PV", inline=True)
+    embed.add_field(name=p2['nome'], value=f"❤️ {p2['pv']} PV", inline=True)
+    
+    await ctx.send(embed=embed, view=view)
+
+# --- SISTEMA DE EVENTOS NARRATIVOS ---
+@bot.command()
+async def evento(ctx, nome: str, dt: int, atributo: str, dano: int):
+    """
+    Cria um desafio para TODOS os jogadores com ficha.
+    Ex: !evento "Ponte Caindo" 15 agilidade 10
+    """
+    if not eh_admin(ctx): return
+    
+    dados = carregar_dados()
+    resumo = [f"🌋 **EVENTO: {nome}**", f"🎯 **Teste:** {atributo.upper()} (DT {dt})", "---"]
+    
+    # Atributo informado deve ser um dos 5 válidos
+    at_busca = atributo.lower()
+    
+    for uid, p in dados["usuarios"].items():
+        # Bônus do atributo do jogador
+        bonus = p["atributos"].get(at_busca, 0)
+        roll = random.randint(1, 20)
+        total = roll + bonus
+        
+        if total >= dt:
+            resumo.append(f"✅ **{p['nome']}** passou! ({roll} + {bonus} = {total})")
+        else:
+            # Aqui o aplicar_dano_complexo é finalmente acessado!
+            # Ele calcula o escudo e verifica se a Fada salva o jogador
+            log_dano, morto = aplicar_dano_complexo(p, dano)
+            resumo.append(f"❌ **{p['nome']}** falhou! {log_dano}")
+
+    # Salva as alterações de PV/Itens (Fadas) de todos os jogadores
+    salvar_dados(dados)
+    
+    embed = discord.Embed(description="\n".join(resumo), color=0xffa500)
+    await ctx.send(embed=embed)
 
 bot.run(TOKEN)

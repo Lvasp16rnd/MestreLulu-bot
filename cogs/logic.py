@@ -1,4 +1,3 @@
-from database import salvar_dados
 import random
 from constantes import PROGRESSAO
 import constantes
