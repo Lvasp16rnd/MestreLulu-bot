@@ -12,17 +12,55 @@ RACAS = {
 }
 
 HABILIDADES_RACA = {
+    "Bruxa": {
+        "1-2": ["Transmutação Sombria", "Olho do Véu"],
+        "3-4": ["Magia de Sangue", "Invocação Elemental"],
+        "5-6": ["Maldição da Lua", "Voo da Vassoura"],
+        "7-8": ["Necro-Comunhão", "Chamas Etéreas"],
+        "9-10": ["Espelho das Almas", "Poções Vivas"]
+    },
+    "Fada": {
+        "1-2": ["Luz de Cura", "Sussurro do Vento"],
+        "3-4": ["Pó Encantado", "Toque da Primavera"],
+        "5-6": ["Riso da Confusão", "Espelho da Bruma"],
+        "7-8": ["Encantamento Musical", "Passos Invisíveis"],
+        "9-10": ["Dom da Sorte", "Lágrima Estelar"]
+    },
     "Elfo": {
-        "1-2": ["Visão da Floresta", "Reflexos Élficos"],
-        "3-5": ["Caminho das Folhas", "Luz das Estrelas"],
-        "6-10": ["Controle Vegetal", "Comunhão Ancestral"]
+        "1-2": ["Visão da Floresta", "Flecha Celeste"],
+        "3-4": ["Caminho das Folhas", "Comunhão Ancestral"],
+        "5-6": ["Encanto da Harmonia", "Cântico de Renovação"],
+        "7-8": ["Controle Vegetal", "Luz das Estrelas"],
+        "9-10": ["Reflexos Élficos", "Aura de Pureza"]
+    },
+    "Drow": {
+        "1-2": ["Sombra Viva", "Veneno Abissal"],
+        "3-4": ["Magia de Crueldade", "Olhar do Terror"],
+        "5-6": ["Domínio da Escuridão", "Chicote dos Subterrâneos"],
+        "7-8": ["Armadilha das Teias", "Voz Enfeitiçadora"],
+        "9-10": ["Portão das Profundezas", "Resistência Sombria"]
+    },
+    "Humano": {
+        "1-2": ["Rastreador Urbano", "Mestre de Armas"],
+        "3-4": ["Poção de Cura Comprada", "Bolsa de Truques Alquímicos"],
+        "5-6": ["Preparação de Emboscada", "Determinação Humana"],
+        "7-8": ["Instinto de Sobrevivência", "Poção de Ataque Comprada"],
+        "9-10": ["Medicina Improvisada", "Tiro Preciso"]
+    },
+    "Fragmentado": {
+        "1-2": ["Ecos da Alma Quebrada", "Cicatriz que Vive"],
+        "3-4": ["Olhar da Ruptura", "Vozes do Fragmento"],
+        "5-6": ["Rasgo Involuntário", "Presença Fraturada"],
+        "7-8": ["Empatia Ruinosa", "Alma Desalinhada"],
+        "9-10": ["Ruptura Mental", "Mimese Quebrada"]
     },
     "Khaerun": {
-        "1-2": ["Pele de Obsidiana", "Canto da Pedra Desperta"],
-        "3-5": ["Olhos de Forja", "Forja Vivo-Ferro"],
-        "6-10": ["Punho Rachado", "Pulso Mineral"]
+        "1-2": ["Forja Vivo-Ferro", "Canto da Pedra Desperta"],
+        "3-4": ["Pele de Obsidiana", "Olhos de Forja"],
+        "5-6": ["Punho Rachado", "Arma da Essência"],
+        "7-8": ["Eco da Montanha", "Pulso Mineral"],
+        "9-10": ["Coração da Bigorna", "Despertar da Forja Profunda"]
     }
-    # ... Adicionar as outras conforme sua lista
 }
 
 DIFICULDADES = {

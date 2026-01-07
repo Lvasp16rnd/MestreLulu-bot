@@ -1,0 +1,436 @@
+{
+  "Bruxa": {
+    "Transmutação Sombria": {
+      "dt": 16, "categoria": "Difícil",
+      "descricao": "A bruxa altera a forma de objetos ou seres vivos temporariamente — pedra, animal, sombra, névoa.\nA transmutação responde à intenção: hostil, protetora ou utilitária.\nDura pouco tempo, mas é extremamente versátil.\n",
+      "falha_1_2": "A forma criada se desfaz rapidamente, voltando ao normal em segundos.",
+      "falha_3_4": "A transmutação ocorre de forma incorreta ou incompleta."
+    },
+    "Olho do Véu": {
+      "dt": 15, "categoria": "Média",
+      "descricao": "A bruxa enxerga por trás de ilusões, mentiras, máscaras, espíritos e véus dimensionais.\nNada oculto permanece seguro — emoções, intenções e presenças são reveladas.\n",
+      "falha_1_2": "A visão fica borrada e incompleta.",
+      "falha_3_4": "A bruxa interpreta sinais de forma equivocada."
+    },
+    "Magia de Sangue": {
+      "dt": 16, "categoria": "Difícil",
+      "descricao": "Ao usar uma gota do próprio sangue (ou de outro ser), a bruxa aumenta drasticamente o poder de seus feitiços.\nMagias se tornam mais fortes, rápidas e intensas — mas ao custo de vitalidade.\n",
+      "falha_1_2": "O feitiço sai fraco demais, perdendo sua força.",
+      "falha_3_4": "A bruxa sente exaustão física ou tontura pelo sangue desperdiçado."
+    },
+    "Invocação Elemental": {
+      "dt": 14, "categoria": "Fácil",
+      "descricao": "A bruxa invoca um dos quatro elementos — fogo, água, terra ou ar — e o manipula temporariamente.\nChamas obedecem, ventos dançam, terra se ergue e água responde ao gesto da bruxa.\n",
+      "falha_1_2": "O elemento surge fraco ou instável.",
+      "falha_3_4": "O elemento reage de forma caótica ou contrária ao comando."
+    },
+    "Maldição da Lua": {
+        "dt": 16, "categoria": "Difícil",
+        "descricao": "Feitiços que ganham força sob a luz da lua: paralisia, enfraquecimento, envelhecimento ou inquietação.\nQuanto mais cheia a lua, mais forte o efeito.\n",
+        "falha_1_2": "A maldição se torna fraca e fácil de resistir.",
+        "falha_3_4": "A maldição escapa e causa mal-estar leve na própria bruxa."
+    },
+    "Voo da Vassoura": {
+        "dt": 14, "categoria": "Fácil",
+        "descricao": "A bruxa usa vassouras, cajados, varas ou até objetos improvisados para voar.\nAltura e velocidade variam conforme a magia, o humor e a concentração.\n",
+        "falha_1_2": "O voo perde estabilidade por alguns instantes.",
+        "falha_3_4": "A bruxa desvia de rota ou perde altitude de maneira repentina."
+    },
+    "Necro-Comunhão": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "A bruxa conversa com mortos: espíritos presos, ancestrais, ecos de memórias. \nPode pedir conselhos, detalhes de eventos passados ou até convocar um espírito para intervir.",
+        "falha_1_2": "A resposta vem truncada e incompleta.",
+        "falha_3_4": "Um espírito confuso ou errado responde no lugar."
+    },
+    "Chamas Etéreas": {
+      "dt": 15, "categoria": "Média",
+      "descricao": "Fogo puro que queimará apenas aquilo que “merece” — mentiras, corrupção, maldade ou intenções escuras.\nChamas não aquecem o mundo físico, apenas o moral.\n.",
+      "falha_1_2": "As chamas surgem fracas ou instáveis.",
+      "falha_3_4": "As chamas atingem um alvo não intencionado (mas de modo leve)."
+    },
+    "Espelho das Almas": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "Um espelho mágico que revela locais, pessoas, destinos ou segredos.\nA bruxa pode ver rastros emocionais, caminhos ocultos e possibilidades futuras.",
+        "falha_1_2": "O espelho mostra imagens distorcidas ou incompletas.",
+        "falha_3_4": "O espelho revela pistas falsas ou interpretações equivocadas."
+    },
+    "Poções Vivas": {
+        "dt": 14, "categoria": "Fácil",
+        "descricao": "Poções mágicas com consciência própria — respondem à intenção, emoção ou moralidade de quem as bebe.\nPodem se adaptar, fortalecer efeitos ou alterar sua própria função.\n",
+        "falha_1_2": "A poção reage de forma imprevisível, alterando seu efeito.",
+        "falha_3_4": "A poção decide agir por conta própria e altera o efeito radicalmente."
+    }
+      },
+  "Fada": {
+    "Luz de Cura": {
+      "dt": 14, "categoria": "Fácil", "tipo": "Cura",
+      "descricao": "Consegue curar feridas físicas e emocionais ao tocar com sua luz.\nA cura devolve serenidade e vitalidade, alcançando cortes, dores internas e sofrimento leve.\n",
+      "falha_1_2": "A luz cura apenas superficialmente, deixando dor residual.",
+      "falha_3_4": "A luz desperta emoções reprimidas, causando instabilidade emocional."
+    },
+    "Sussurro do Vento": {
+      "dt": 14, "categoria": "Fácil",
+      "descricao": "Comunicação direta com plantas, animais, brisas e elementos naturais.\nPermite receber alertas, rastrear criaturas ou sentir intenções ambientais.\n",
+      "falha_1_2": "As respostas chegam confusas ou contraditórias.",
+      "falha_3_4": "A fada sofre leve dor de cabeça pelo excesso de vozes naturais."
+    },
+    "Pó Encantado": {
+        "dt": 14, "categoria": "Fácil",
+        "descricao": "Cria ilusões, influencia sonhos rápidos ou confunde criaturas temporariamente.\nPode distrair inimigos, manipular percepções ou induzir euforia leve.\n",
+        "falha_1_2": "A ilusão fica fraca e se desfaz rapidamente.",
+        "falha_3_4": "O pó ricocheteia e afeta a própria fada ou um aliado próximo."
+    },
+    "Toque da Primavera": {
+      "dt": 15, "categoria": "Média",
+      "descricao": "Acelera o crescimento de plantas, floresce terras áridas e purifica águas com energia primaveril.\nÉ um poder de renovação e restauração ambiental.\n",
+      "falha_1_2": "Plantas crescem de forma frágil ou irregular.",
+      "falha_3_4": "A energia atrai criaturas naturais curiosas ou territoriais."
+    },
+    "Riso da Confusão": {
+        "dt": 15, "categoria": "Média",
+      "descricao": "Encantamento que causa riso incontrolável e desorientação no alvo.\nPerfeito para interromper ataques ou quebrar tensão.\n",
+      "falha_1_2": "O feitiço atinge um aliado próximo.",
+      "falha_3_4": "A fada perde o controle e entra em crise de riso sozinha."
+    },
+    "Espelho da Bruma": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "A fada se oculta instantaneamente na névoa ou “viaja” por ela, reaparecendo alguns metros adiante.\nÚtil para fuga, infiltração e evasão.",
+        "falha_1_2": "A fada reaparece no lugar errado ou deslocada.",
+        "falha_3_4": "A névoa falha, causando tontura intensa."
+    },
+    "Encantamento Musical": {
+      "dt": 15, "categoria": "Média",
+      "descricao": "Com canto ou melodia, a fada altera emoções profundas — acalma, inspira, reduz medo ou ódio.\nEfeito especialmente forte em criaturas sensíveis à magia.\n",
+      "falha_1_2": "Em vez de acalmar, a música provoca irritação ou ansiedade.",
+      "falha_3_4": "A própria fada se emociona demais e perde o controle do feitiço."
+    },
+    "Passos Invisíveis": {
+        "dt": 16, "categoria": "Difícil",
+        "descricao": "A fada se torna invisível em ambientes naturais ou se transforma em uma centelha quase imperceptível.\nIdeal para espionagem, fuga e movimentação discreta.\n",
+        "falha_1_2": "A invisibilidade falha parcialmente, deixando a fada piscando.",
+        "falha_3_4": "Um brilho involuntário surge e denuncia sua posição."
+    },
+    "Dom da Sorte": {
+        "dt": 16, "categoria": "Difícil",
+        "descricao": "Manipula probabilidades: concede sorte aos aliados e azar sutil aos inimigos.\nPequenos milagres acontecem — ou tropeços inesperados para adversários.\n",
+        "falha_1_2": "A sorte se volta de forma aleatória e imprevisível.",
+        "falha_3_4": "O azar recai sobre a própria fada por instantes."
+    },
+    "Lagrima Estelar": {
+        "dt": 16, "categoria": "Difícil",
+        "descricao": "Uma lágrima luminosa capaz de purificar magia sombria, remover maldições e dissipar corrupção espiritual.\nÉ um poder raro e extremamente poderoso.\n",
+        "falha_1_2": "A lágrima evapora antes de agir.",
+        "falha_3_4": "A energia sombria reage violentamente, causando um choque espiritual leve."
+    }    
+        },
+  "Elfo": {
+    "Visão da Floresta": {
+      "dt": 14, "categoria": "Fácil",
+      "descricao": "Permite enxergar longe em ambientes naturais e perceber criaturas ocultas.\nO elfo detecta presenças escondidas, rastros e criaturas camufladas com clareza.\n",
+      "falha_1_2": "A visão o engana e ele interpreta sinais falsos.",
+      "falha_3_4": "Um brilho natural o cega levemente, perdendo percepção por 1 turno."
+    },
+    "Flecha Celeste": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "Conjura flechas mágicas de pura energia, que nunca erram o alvo digno.\nA flecha encontra o alvo mesmo se estiver protegido ou escondido.\n",
+        "falha_1_2": "A flecha se desfaz antes de atingir.",
+        "falha_3_4": "A energia se dispersa ao lado, denunciando a posição do elfo."
+    },
+    "Caminho das Folhas": {
+        "dt": 14, "categoria": "Fácil",
+        "descricao": "Pode se mover silenciosamente e rapidamente, tornando-se quase invisível na vegetação.\nO elfo se movimenta sem ruído e quase imperceptível.\n",
+        "falha_1_2": " Um galho quebra ou folhas secas estalam, revelando-o.",
+        " falha_3_4": "A vegetação o atrapalha e reduz seu movimento."
+    },
+    "Comunhão Ancestral": {
+      "dt": 15, "categoria": "Média",
+      "descricao": "Comunica-se com árvores milenares e recebe conselhos dos espíritos da floresta.\nEspíritos ancestrais revelam rotas, perigos e presenças próximas.\n",
+      "falha_1_2": "Os sussurros são confusos e induzem ao erro.",
+      "falha_3_4": "A árvore absorve energia e deixa o elfo esgotado por 1 turno."
+    },
+    "Encanto da Harmonia": {
+        "dt":14, "categoria": "Fácil",
+        "descricao": "Gera paz e cooperação entre seres naturais ao seu redor.\nCriaturas hostis se acalmam e o ambiente entra em equilíbrio.\n",
+        "falha_1_2": "O encanto soa estranho, deixando criaturas inquietas.",
+        "falha_3_4": "Os seres naturais ignoram o elfo completamente."
+    },
+    "Cântico de Renovação": {
+        "dt":15, "categoria": "Média", "tipo": "Cura", "valor_fixo": "1d6",
+        "descricao": "Canta melodias capazes de curar profundas feridas físicas ou espirituais.\n",
+        "falha_1_2": "A magia se desestabiliza e causa 1d4 de dor espiritual.",
+        "falha_3_4": "A voz falha e o elfo não pode usar magia no próximo turno."
+    },
+    "Controle Vegetal": {
+        "dt":15, "categoria": "Média",
+        "descricao": "Canaliza energia estelar para regenerar força própria ou de aliados.\nHabilidade de Cura\n",
+        "falha_1_2": "As plantas crescem caoticamente e falham em ajudar.",
+        "falha_3_4": "As raízes agarram acidentalmente um aliado."
+    },
+    "Luz das Estrelas": {
+        "dt":16, "categoria": "Difícil", "tipo": "Cura", "valor_fixo": "1d6",
+        "descricao": "Invoca a luz suave das estrelas para iluminar áreas extensas ou revelar o invisível.\nA luz estelar dissipa sombras e revela o oculto.\n",
+        "falha_1_2": "Um pulso descontrolado causa 1d4 de dano radiante.",
+        "falha_3_4": "A energia se volta contra o elfo e o enfraquece temporariamente."
+    },
+    "Reflexos Élficos": {
+        "dt":14, "categoria": "Fácil",
+        "descricao": "Capacidade de antecipar movimentos e esquivar ataques com graça sobrenatural.\nO elfo esquiva com precisão e pode se reposicionar vantajosamente.\n",
+        "falha_1_2": "A esquiva é tardia — recebe metade do dano.",
+        "falha_3_4": "Ele se desequilibra e tem desvantagem no próximo teste."
+    },
+    "Aura de Pureza": {
+        "dt":15, "categoria": "Média",
+        "descricao": "Protege contra venenos, ilusões ou magias sombrias dentro de um raio próximo.\nO alvo recebe proteção temporária contra corrupções e venenos.\n",
+        "falha_1_2": "A aura não se manifesta.",
+        "falha_3_4": "A aura falha e deixa o alvo vulnerável a influências sombrias."
+    }
+        },
+  "Khaerun": {
+    "Forja Vivo-Ferro": {
+      "dt": 15, "categoria": "Média",
+      "descricao": "Permite aquecer partes do próprio corpo até o brilho incandescente, podendo \nmoldar metal com as mãos ou causar dano ao toque.\n",
+      "falha_1_2": "O calor fica instável e superaquece, causando dor e inutilizando a habilidade por 1 turno.",
+      "falha_3_4": "O corpo não atinge temperatura suficiente; o metal não reage ou o dano falha."
+    },
+    "Canto da Pedra Desperta": {
+        "dt": 16, "categoria": "Difícil",
+        "descricao": "Um cântico grave que faz vibrar rochas e minérios, revelando túneis ocultos,\ndetectando criaturas e desestabilizando superfícies.\n",
+        "falha_1_2": "A vibração ecoa demais e atrai criaturas indesejadas.",
+        "falha_3_4": "O canto não penetra a pedra; nada é revelado."
+    },
+    "Pele de Obsidiana":{
+        "dt":14, "categoria": "Fácil",
+        "descricao": "A pele do Khaerun endurece formando placas minerais, reduzindo dano físico e\ntornando o corpo mais pesado e resistente.\n",
+        "falha_1_2": "As placas se formam pela metade, deixando falhas vulneráveis.",
+        "falha_3_4": "A pele endurece em excesso, limitando movimentos"
+    },
+    "Olhos de Forja": {
+        "dt": 14, "categoria": "Fácil",
+        "descricao": "Os olhos brilham como metal quente; permite enxergar calor, energia mágica ou\nfraquezas estruturais em seres e objetos.\n",
+        "falha_1_2": "O brilho cega temporariamente o Khaerun.",
+        "falha_3_4": "A leitura de calor/magia é distorcida e fornece informações erradas."
+    },
+    "Punho Rachado": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "Golpe que libera energia sísmica capaz de rachar armaduras, derrubar inimigos ou\nabrir pequenas fendas no solo.\n",
+        "falha_1_2": "A energia reverbera no próprio braço, causando dor.",
+        "falha_3_4": "A onda sísmica não se forma; o golpe sai comum."
+    },
+    "Arma da Essência": {
+        "dt": 16, "categoria": "Difícil",
+        "descricao": "O Khaerun vincula sua alma a uma arma forjada por ele, permitindo que ela evolua\ncom poderes únicos.\n",
+        "falha_1_2": "A conexão falha e os bônus são reduzidos temporariamente.",
+        "falha_3_4": "A arma reage de forma instável, aquecendo ou vibrando perigosamente."
+    },
+    "Eco da Montanha": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "Permite duplicar um movimento ou ataque próprio alguns segundos depois, como\num eco físico.\n",
+        "falha_1_2": "O eco surge tarde demais e não ajuda em nada.",
+        "falha_3_4": "O eco aparece na direção errada, podendo atrapalhar aliados."
+    },
+    "Pulso Mineral": {
+        "dt": 14, "categoria": "Fácil",
+        "descricao": "Arremessa fragmentos de rocha viva ou metal bruto que se regeneram, causando\ndano físico ou mágico.\n",
+        "falha_1_2": "Os fragmentos se desfazem antes de atingir o alvo.",
+        "falha_3_4": "O disparo sai fraco e perde precisão."
+    },
+    "Coração da Bigorna": {
+        "dt": 14, "categoria": "Fácil",
+        "descricao": "Enquanto permanecer imóvel por alguns instantes, o Khaerun entra em\n'estado de forja', regenerando lentamente rachaduras e fadiga.\n",
+        "falha_1_2": "O calor interno explode desconfortavelmente, impedindo a regeneração.",
+        "falha_3_4": "O estado de forja é interrompido pela instabilidade do corpo mineral."
+    },
+    "Despertar da Forja Profunda": {
+        "dt": 16, "categoria": "Difícil",
+        "descricao": "Uma habilidade rara e perigosa: o Khaerun invoca chamas abissais ou frio mineral\nabsoluto (dependendo do seu veio), ganhando poder brutal por curto tempo —\nporém ao custo de se aproximar da corrupção das Estátuas Despertas.\n",
+        "falha_1_2": "A energia abissal corrompe parcialmente o Khaerun, causando dano interno.",
+        "falha_3_4": "O poder desperta fraco e instável, sem conceder seus bônus."
+    }
+  },
+  "Drow": {
+    "Sombra Viva": {
+        "dt": 14, "categoria": "Fácil",
+        "descricao": "Manipula sombras para se esconder, atacar ou viajar rapidamente entre pontos escuros.\nAs sombras respondem ao comando, escondendo o drow, estendendo ataques ou permitindo deslocamento instantâneo entre áreas escuras.\n",
+        "falha_1_2": "As sombras se dissipam, revelando sua posição.",
+        "falha_3_4": "Ele é puxado parcialmente para a escuridão e perde 1 turno se recompondo."
+    },
+    "Veneno Abissal": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "Cria venenos mágicos que enfraquecem corpo e mente das vítimas.\nO veneno toma forma e afeta o alvo, reduzindo força, foco e resistência.\n",
+        "falha_1_2": "O veneno se torna fraco e inofensivo.",
+        "falha_3_4": "O drow inala parte da toxina e sofre leve desorientação."
+    },
+    "Magia de Crueldade": {
+        "dt": 16, "categoria": "Difícil",
+        "descricao": "Realiza feitiços destruidores que aumentam de poder conforme a dor infligida.\nA magia amplifica o dano conforme a dor presente no campo, tornando-se brutalmente ofensiva.\n",
+        "falha_1_2": "O feitiço falha e dissipa energia negra ao redor.",
+        "falha_3_4": "A magia retrocede e causa dor fantasma no próprio drow."
+    },
+    "Olhar do Terror": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "Um olhar que paralisa inimigos por medo puro e profundo.\nO alvo fica paralisado ou altamente intimidado, incapaz de agir por alguns instantes.\n",
+        "falha_1_2": "O olhar perde força e nada acontece.",
+        "falha_3_4": "O drow sente um rebote psíquico, ficando abalado por 1 turno."
+    },
+    "Domínio da Escuridão": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "Escuridão absoluta ao redor, cegando e confundindo adversários.\nA área entra em trevas totais, desorientando todos os inimigos dentro do alcance.\n",
+        "falha_1_2": "A escuridão surge fraca e irregular, fácil de atravessar.",
+        "falha_3_4": "A escuridão se volta contra o drow, reduzindo sua própria visão."
+    },
+    "Chicote dos Subterrâneos": {
+        "dt": 14, "categoria": "Fácil",
+        "descricao": "Cria armas vivas feitas de energia negra para atacar instantaneamente.\nA arma sombria se forma e atinge com velocidade sobrenatural.\n",
+        "falha_1_2": "O chicote se desfaz antes de atacar.",
+        "falha_3_4": "Ele se volta contra o drow, causando um golpe leve."
+    },
+    "Armadilha das Teias": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "Invoca teias mágicas que prendem, sugam energia e atrapalham movimentos.\nA teia captura o alvo, drenando sua energia e restringindo movimento.\n",
+        "falha_1_2": "A teia se rompe imediatamente.",
+        "falha_3_4": "A teia escorre na direção errada e prende um aliado próximo."
+    },
+    "Voz Enfeitiçadora": {
+        "dt": 16, "categoria": "Difícil",
+        "descricao": "Encanta e manipula mentes fracas, tornando-os servos temporários.\nO alvo cede ao encanto e segue ordens básicas do drow por curto período.\n",
+        "falha_1_2": "O encanto é ignorado completamente.",
+        "falha_3_4": "A voz falha e o drow perde momentaneamente sua capacidade de persuasão."
+    },
+    "Portão das Profundezas": {
+        "dt": 16, "categoria": "Difícil",
+        "descricao": "Abre passagens para reinos obscuros ou invoca criaturas das trevas.\nO portal se abre e permite passagem ou invocação controlada.\n",
+        "falha_1_2": "O portal não se estabiliza e se fecha imediatamente.",
+        "falha_3_4": "Algo do outro lado percebe o drow — criando risco futuro ou atraindo atenção hostil."
+    },
+    "Resistência Sombria": {
+        "dt": 14, "categoria": "Fácil",
+        "descricao": "Imunidade a magias de luz, encantamentos positivos e ilusão de pureza.\nO drow ignora completamente magias luminosas e purificadoras.\n",
+        "falha_1_2": "A resistência não se ativa no momento necessário.",
+        "falha_3_4": "Uma brecha se abre e o drow se torna vulnerável por alguns segundos."
+    }
+  },
+  "Humano": {
+    "Rastreador": {
+        "dt": 14, "categoria": "Fácil",
+        "descricao": "O humano identifica pegadas, rotas recentes, cheiro, objetos derrubados — rastreando alguém em ambientes naturais ou urbanos.\n",
+        "falha_1_2": "Segue pistas falsas.",
+        "falha_3_4": "Perde o rastro por completo."
+    },
+    "Mestre de Armas": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "Sabe usar espadas, arcos, lanças, bestas e até armas improvisadas com maior precisão.\n",
+        "falha_1_2": "O ataque erra por erro de cálculo.",
+        "falha_3_4": "A arma escapa ou falha temporariamente."
+    },
+    "Poção de Cura Comprada": {
+        "dt": 14, "categoria": "Fácil", "tipo": "Cura", "valor_fixo": "1d6",
+        "descricao": "Ao beber ou aplicar a poção, o humano recupera 1d6 PV.\n",
+        "falha_1_2": "A poção age fraca, cura quase nada.",
+        "falha_3_4": "A mistura reage mal e causa enjoo, perdendo 1d4 PV."
+    },
+    "Bolsa de Truques Alquímicos": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "O humano usa frascos, bombas de fumaça, óleo inflamável, pós soníferos etc.\n",
+        "falha_1_2": "O item falha ou quebra.",
+        "falha_3_4": "O efeito explode/espalha no lugar errado."
+    },
+    "Preparação de Emboscada": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "Cria armadilhas simples (fio, queda, distração, estaca, ruído falso).\n",
+        "falha_1_2": "A armadilha não dispara.",
+        "falha_3_4": "O humano ativa acidentalmente sua própria armadilha."
+    },
+    "Determinação Humana": {
+        "dt": 14, "categoria": "Fácil",
+        "descricao": "Resiste ao medo, dor ou coação física e psicológica.\n",
+        "falha_1_2": "A resistência quebra e cede ao medo.",
+        "falha_3_4": "A tensão causa exaustão por 1 turno."
+    },
+    "Instinto de Sobrevivência": {
+        "dt": 14, "categoria": "Fácil",
+        "descricao": "Evita perigos naturais, reconhece ameaças e toma decisões rápidas.\n",
+        "falha_1_2": "Ele subestima a situação.",
+        "falha_3_4": "Reage tarde e sofre penalidade."
+    },
+    "Poção de Ataque Comprada": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "Arremessa ou aplica uma poção explosiva, elétrica, corrosiva etc., causando dano especial.\n",
+        "falha_1_2": "A poção falha ou evapora.",
+        "falha_3_4": "O frasco quebra incorretamente e atinge o próprio usuário."
+    },
+    "Medicina Improvisada": {
+        "dt": 14, "categoria": "Fácil", "tipo": "Cura", "valor_fixo": "1d6",
+        "descricao": "Usa ervas, bandagens, álcool e técnicas básicas para recuperar 1d6 PV.\n",
+        "falha_1_2": "O curativo falha e não regenera nada.",
+        "falha_3_4": "A ferida inflama levemente (perde 1d4 PV)."
+    },
+    "Tiro Preciso": {
+        "dt": 16, "categoria": "Difícil",
+        "descricao": "Um disparo cuidadosamente preparado, com arco, besta ou arma de fogo mágica comprada — ignorando coberturas leves.\n",
+        "falha_1_2": "O tiro passa longe do alvo.",
+        "falha_3_4": "A arma emperra ou o tiro ricocheteia perigosamente."
+    }
+  },
+  "Fragmentado": {
+    "Ecos da Alma Quebrada": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "Fragmentos de outras vidas sussurram respostas, revelando pistas, perigos ou lembranças perdidas.\n",
+        "falha_1_2": "O eco mente.",
+        "falha_3_4": "O usuário sofre dor mental e perde 1 turno."
+    },
+    "Cicatriz que Vive": {
+        "dt": 15, "categoria": "Média", "tipo": "Cura", "valor_fixo": "1d6",
+        "descricao": "A carne se fecha sozinha, pulsando como se tivesse vontade própria. Cura 1d6 PV.\n",
+        "falha_1_2": "A cicatriz fecha errado e limita movimento (penalidade).",
+        "falha_3_4": "A carne se fecha rápido demais e causa dor (perde 1d4 PV)."
+    },
+    "Olhar da Ruptura": {
+        "dt": 16, "categoria": "Difícil",
+        "descricao": "O fragmentado vê 'fissuras' no mundo — mentiras, ilusões, intenções ocultas, caminhos quebrados.\n",
+        "falha_1_2": "Enxerga fissuras falsas e toma decisões ruins.",
+        "falha_3_4": "A visão distorce tudo, causando vertigem."
+    },
+    "Vozes do Fragmento": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "Personalidades presas na alma dão conselhos mortais, alertas ou estratégias.\n",
+        "falha_1_2": "As vozes entram em silêncio absoluto.",
+        "falha_3_4": "Uma voz maligna assume temporariamente."
+    },
+    "Rasgo Involuntário": {
+        "dt": 16, "categoria": "Difícil",
+        "descricao": "Um micro-rasgo na realidade abre por 1 segundo, criando vento, frio, som ou energia caótica.\n",
+        "falha_1_2": "O rasgo puxa o usuário alguns centímetros (queda).",
+        "falha_3_4": "Algo do outro lado tenta entrar (assustando ou causando dano leve)."
+    },
+    "Presença Fraturada": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "A aura do fragmentado confunde rastreamento mágico, tornando-o borrado, 'não focável'.\n",
+        "falha_1_2": "O bloqueio falha e ele é detectado.",
+        "falha_3_4": "Ele perde memória temporária de algo importante."
+    },
+    "Empatia Ruinosa": {
+        "dt": 14, "categoria": "Fácil",
+        "descricao": "O fragmentado sente emoções alheias, mas de forma distorcida e profunda.\n",
+        "falha_1_2": "Interpreta tudo errado.",
+        "falha_3_4": "Absorve dor emocional e fica abalado."
+    },
+    "Alma Desalinhada": {
+        "dt": 16, "categoria": "Difícil",
+        "descricao": "Por alguns segundos, o fragmentado não está totalmente 'presente', tornando-se difícil acertá-lo.\n",
+        "falha_1_2": "O corpo desincroniza e cai.",
+        "falha_3_4": "Sente dor intensa do deslocamento."
+    },
+    "Ruptura Mental": {
+        "dt": 15, "categoria": "Média",
+        "descricao": "Sua mente resiste a ilusões, pesadelos e controle, mas de forma agressiva.\n",
+        "falha_1_2": "A influência mental o domina.",
+        "falha_3_4": "Ele cria sua própria ilusão e se confunde."
+    },
+    "Mimese Quebrada": {
+        "dt": 16, "categoria": "Difícil",
+        "descricao": "Copia temporariamente uma habilidade básica de outro ser — mas imperfeita, distorcida.\n",
+        "falha_1_2": "Nada é copiado.",
+        "falha_3_4": "Copia errado e causa dano a si mesmo."
+    }
+  }
+}
