@@ -81,7 +81,8 @@ async def registrar(ctx):
         "nome": ctx.author.name,
         "raca": raca,
         "nivel": 1, 
-        "pv": 30, 
+        "pv": 30,
+        "descansos": 3,
         "ca": 5, 
         "dado_nivel": "1d6", 
         "dinheiro": 500,
@@ -107,17 +108,24 @@ async def ficha(ctx, alvo: discord.Member = None):
 
     at = p["atributos"]
     sorte = p["nivel"] + (at.get("presenca", 0) * 2)
+    descansos = p.get("descansos", 0)
+
     embed = discord.Embed(title=f"📜 Ficha de {p['nome']}", color=0x71368a)
     embed.add_field(name="🧬 Raça/Nível", value=f"{p['raca']} Lvl {p['nivel']}", inline=True)
-    embed.add_field(name="❤️ PV | 🛡️ Escudo", value=f"{p['pv']} | {p['ca']}", inline=True)
+    
+    embed.add_field(name="❤️ PV | 🛡️ Escudo | ⛺", value=f"{p['pv']} | {p['ca']} | ({descansos})", inline=True)
     embed.add_field(name="🍀 Sorte", value=str(sorte), inline=True)
     
     status = "💀 **AZARADO**" if p.get("azarado") else "✨ Normal"
     embed.add_field(name="Status", value=status, inline=True)
-    embed.add_field(name="🎲 Dado", value=p.get('dado_nivel', '1d6'), inline=True)
+    
+    dado_atual = calcular_dano_nivel(p["nivel"])
+    embed.add_field(name="🎲 Dado Atual", value=dado_atual, inline=True)
     
     attrs = f"FOR: {at['forca']} | AGI: {at['agilidade']} | INT: {at['intelecto']}\nPRE: {at['presenca']} | CAR: {at['carisma']}"
     embed.add_field(name="📊 Atributos", value=f"```\n{attrs}\n```", inline=False)
+    embed.set_footer(text="Use !descansar para recuperar fôlego (consome ⛺)")
+    
     await ctx.send(embed=embed)
 
 @bot.command()
@@ -222,14 +230,39 @@ async def upar(ctx, alvo: discord.Member, n: int = 1):
     if not eh_admin(ctx): return
     dados = carregar_dados()
     p = dados["usuarios"].get(str(alvo.id))
+    
     if p:
         p["nivel"] += n
+        # BÔNUS DE DESCANSO: Ganha 1 carga por nível subido
+        p["descansos"] = p.get("descansos", 0) + n
+        
         for faixa, st in constantes.TABELA_NIVEIS.items():
-            if int(faixa.split('-')[0]) <= p["nivel"] <= int(faixa.split('-')[1]):
-                p["pv"], p["ca"], p["dado_nivel"] = st["pv"], st["ca"], st["dado"]
+            f_inicio = int(faixa.split('-')[0])
+            f_fim = int(faixa.split('-')[1])
+            
+            if f_inicio <= p["nivel"] <= f_fim:
+                # Atualiza PV Máximo e CA conforme a tabela
+                p["pv_max"] = st["pv"] 
+                p["ca"] = st["ca"]
+                p["dado_nivel"] = st["dado"]
+                
+                # Opcional: Curar o jogador totalmente ao upar
+                p["pv"] = p["pv_max"] 
                 break
+        
         salvar_dados(dados)
-        await ctx.send(f"✨ {alvo.name} subiu para Lvl {p['nivel']}! Dado: {p['dado_nivel']}")
+        
+        embed = discord.Embed(
+            title="🎊 NOVO NÍVEL ALCANÇADO!",
+            description=f"**{alvo.name}** agora é Nível **{p['nivel']}**!",
+            color=0x00ff00
+        )
+        embed.add_field(name="🎲 Novo Dado", value=p['dado_nivel'], inline=True)
+        embed.add_field(name="⛺ Bônus", value=f"+{n} Carga de Descanso", inline=True)
+        embed.add_field(name="❤️ Vida Atualizada", value=f"{p['pv']}/{p['pv_max']}", inline=False)
+        embed.set_footer(text="A Lulu está orgulhosa do seu progresso!")
+        
+        await ctx.send(embed=embed)
 
 @bot.command()
 async def concluir_missao(ctx):
@@ -367,5 +400,65 @@ async def evento(ctx, nome: str, dt: int, atributo: str, dano: int):
     
     embed = discord.Embed(description="\n".join(resumo), color=0xffa500)
     await ctx.send(embed=embed)
+
+@bot.command()
+async def descansar(ctx):
+    user_id = str(ctx.author.id)
+    dados = carregar_dados()
+    p = dados["usuarios"].get(user_id)
+    if not p: return await ctx.send("🐾 **Lulu:** Sem alma, sem sono.")
+
+    # Verifica se tem cargas de descanso (padrão 0 se não existir no JSON ainda)
+    cargas = p.get("descansos", 0)
+
+    if cargas <= 0:
+        return await ctx.send(f"🐾 **Lulu:** {p['nome']}, você está exausto, mas não tem mais tempo para pausas agora! (0 descansos restantes)")
+
+    if p["pv"] >= p["pv_max"]:
+        return await ctx.send(f"🐾 **Lulu:** Por que dormir se você está inteiro? Vá lutar!")
+
+    # Lógica de Cura
+    dado_cura = calcular_dano_nivel(p["nivel"])
+    cura = rolar_dado(dado_cura)
+    p["pv"] = min(p["pv_max"], p["pv"] + cura)
+    
+    # Consome uma carga
+    p["descansos"] -= 1
+
+    # Frases da Lulu vigiando
+    frases_lulu = [
+        "Fiquem tranquilos, meus olhinhos estão atentos a qualquer sombra...",
+        "Podem babar à vontade, eu aviso se algo tentar devorar vocês.",
+        "Aproveitem o silêncio. Se eu sentir um cheiro de perigo, eu mordo!",
+        "Vou ficar aqui polindo minhas garras enquanto vocês roncam.",
+        "Descansar é para os fracos... mas eu deixo, só desta vez."
+    ]
+    vigilancia = random.choice(frases_lulu)
+
+    embed = discord.Embed(
+        title=f"💤 {p['nome']} montou acampamento",
+        description=f"O cansaço diminui enquanto você recupera as forças.\n\n"
+                    f"💖 **Recuperado:** +{cura} PV\n"
+                    f"❤️ **Vida Atual:** {p['pv']}/{p['pv_max']}\n"
+                    f"⛺ **Descansos Restantes:** {p['descansos']}\n\n"
+                    f"🐾 **Vigilância da Lulu:** *\"{vigilancia}\"*",
+        color=0x2c3e50
+    )
+    
+    salvar_dados(dados)
+    await ctx.send(embed=embed)
+
+@bot.command()
+@commands.has_permissions(administrator=True) # Só você ou ADMs podem usar
+async def lulu_reset(ctx, quantidade: int = 1):
+    dados = carregar_dados()
+    
+    # Dá 'quantidade' de descansos para TODOS os jogadores registrados
+    for user_id in dados["usuarios"]:
+        p = dados["usuarios"][user_id]
+        p["descansos"] = p.get("descansos", 0) + quantidade
+    
+    salvar_dados(dados)
+    await ctx.send(f"🐾 **Lulu:** Recuperei o fôlego de todos! Adicionei **{quantidade}** carga(s) de descanso para o grupo.")
 
 bot.run(TOKEN)
