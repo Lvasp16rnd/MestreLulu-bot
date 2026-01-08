@@ -449,6 +449,57 @@ async def descansar(ctx):
     await ctx.send(embed=embed)
 
 @bot.command()
+async def lulu_ajuda(ctx):
+    embed = discord.Embed(
+        title="🐾 Central de Ajuda da Lulu",
+        description="Olá! Eu sou a Lulu, a guardiã da sua jornada. Aqui estão as ordens que eu entendo:",
+        color=0x71368a
+    )
+    
+    # Seção de Aventura
+    aventura = (
+        "**!ficha** [@usuario] - Veja sua ficha, vida e atributos.\n"
+        "**!habilidades** - Liste as técnicas que você já liberou.\n"
+        "**!usar <nome>** - Use uma habilidade da sua raça.\n"
+        "**!descansar** - Use uma carga de acampamento (⛺) para curar PV.\n"
+        "**!d <expressão>** - Rola dados genéricos (ex: !d 2d10+5)."
+    )
+    embed.add_field(name="⚔️ Ação e Aventura", value=aventura, inline=False)
+
+    # Seção de Regras Lulu (Interação)
+    regras = (
+        "• **Sucesso:** Tire um valor igual ou maior que a DT.\n"
+        "• **Azar:** Se você estiver azarado (💀), sua próxima rolagem tem -5.\n"
+        "• **Cura:** O descanso recupera PV baseado no seu nível atual."
+    )
+    embed.add_field(name="📜 Regras Rápidas", value=regras, inline=False)
+
+    # Seção para o Mestre (Só aparece se quem digitou for Admin)
+    if ctx.author.guild_permissions.administrator:
+        mestre = (
+            "**!registrar @usuario <raça>** - Cria uma nova ficha.\n"
+            "**!upar @usuario [n]** - Sobe o nível e dá bônus.\n"
+            "**!lulu_reset [n]** - Dá cargas de descanso para todos.\n"
+            "**!lulu_azar @usuario** - Amaldiçoa um jogador com -5."
+        )
+        embed.add_field(name="👑 Comandos de Mestre", value=mestre, inline=False)
+
+    embed.set_footer(text="A Lulu está de olho em você! Boa sorte na mesa.")
+    embed.set_thumbnail(url="URL_DE_UMA_IMAGEM_DA_LULU_SE_TIVER") # Opcional
+
+    await ctx.send(embed=embed)
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def lulu_azar(ctx, alvo: discord.Member):
+    dados = carregar_dados()
+    p = dados["usuarios"].get(str(alvo.id))
+    if p:
+        p["azarado"] = True
+        salvar_dados(dados)
+        await ctx.send(f"💀 **Lulu rosnou para {alvo.name}!** A nuvem do azar agora te persegue (-5 na próxima rolagem).")
+
+@bot.command()
 @commands.has_permissions(administrator=True) # Só você ou ADMs podem usar
 async def lulu_reset(ctx, quantidade: int = 1):
     dados = carregar_dados()
