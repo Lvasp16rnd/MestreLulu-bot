@@ -1,49 +1,29 @@
 import random
-from constantes import PROGRESSAO
 import constantes
-
-def aplicar_dano(usuario_data, dano):
-    """
-    Aplica dano e verifica se a Fada deve salvar o jogador.
-    Retorna uma tupla: (mensagem_de_status, morreu_de_vez)
-    """
-    usuario_data["pv"] -= dano
-    nome = usuario_data["nome"]
-
-    if usuario_data["pv"] <= 0:
-        # Verifica se tem o item 'Fada' no inventário
-        if "Fada" in usuario_data["inventario"]:
-            usuario_data["inventario"].remove("Fada") # Consome o item
-            vida_maxima = 30 # Ou a vida baseada no nível dele
-            # Resgata com 50% da vida total conforme a faixa de nível
-            if usuario_data["nivel"] <= 5: vida_maxima = 30
-            elif usuario_data["nivel"] <= 10: vida_maxima = 50
-            elif usuario_data["nivel"] <= 15: vida_maxima = 70
-            else: vida_maxima = 90
-            
-            usuario_data["pv"] = vida_maxima // 2
-            return f"✨ **A Fada saiu do inventário de {nome} e se sacrificou!** {nome} voltou com {usuario_data['pv']} PV.", False
-        else:
-            usuario_data["pv"] = 0
-            return f"💀 **{nome} sucumbiu aos ferimentos e morreu.**", True
-            
-    return f"💢 {nome} recebeu {dano} de dano. PV restante: {usuario_data['pv']}", False
 
 def rolar_dado(string_dado):
     """Converte '2d6' em resultado numérico"""
     qtd, faces = map(int, string_dado.split('d'))
     return sum(random.randint(1, faces) for _ in range(qtd))
 
+def calcular_dano_nivel(nivel):
+    """Retorna o dado de dano base do jogador conforme o nível"""
+    if nivel <= 2: return "1d6"
+    if nivel <= 5: return "1d8"
+    if nivel <= 10: return "2d6"
+    if nivel <= 15: return "2d8"
+    return "3d6"
+
 def aplicar_dano_complexo(p_data, dano_bruto):
     """
-    p_data: dicionário do jogador no JSON
-    dano_bruto: dano vindo da arma ou habilidade
+    Função ÚNICA para aplicar dano. 
+    Calcula Escudo e verifica Fada.
     """
+    # Se o jogador não tiver o campo 'ca', assume 0
     escudo = p_data.get("ca", 0)
     
-    # Se tiver itens de bônus no inventário, soma aqui
-    # Exemplo simplificado:
-    if "Escudo da Vigília Ancestral" in p_data["inventario"]:
+    # Bônus de itens específicos
+    if "Escudo da Vigília Ancestral" in p_data.get("inventario", []):
         escudo += 6
         
     dano_final = max(0, dano_bruto - escudo)
@@ -51,20 +31,20 @@ def aplicar_dano_complexo(p_data, dano_bruto):
     
     log = f"💢 Dano: {dano_bruto} - Escudo: {escudo} = **{dano_final} sofrido.**"
     
-    # Lógica da Fada (Ressurreição)
+    # Lógica da Fada
     if p_data["pv"] <= 0:
-        if "Fada" in p_data["inventario"]:
+        if "Fada" in p_data.get("inventario", []):
             p_data["inventario"].remove("Fada")
-            # Pega vida máxima da tabela de progressão
-            nivel = p_data["nivel"]
+            nivel = p_data.get("nivel", 1)
             v_max = 30
-            for faixa, valores in PROGRESSAO.items():
-                inicio, fim = map(int, faixa.split('-'))
-                if inicio <= nivel <= fim:
+            # Busca vida máxima nas constantes
+            for faixa, valores in constantes.PROGRESSAO.items():
+                partes = faixa.split('-')
+                if int(partes[0]) <= nivel <= int(partes[1]):
                     v_max = valores["pv"]
                     break
             p_data["pv"] = v_max // 2
-            log += f"\n✨ **A Fada salvou {p_data['nome']}!** Retornou com {p_data['pv']} PV."
+            log += f"\n✨ **A Fada salvou {p_data['nome']}!** PV: {p_data['pv']}"
             return log, False
         else:
             p_data["pv"] = 0
@@ -74,30 +54,21 @@ def aplicar_dano_complexo(p_data, dano_bruto):
     return log, False
 
 def usar_pocao_sorte(usuario_data):
-    sorteio = random.random() # Gera um número entre 0.0 e 1.0
+    sorteio = random.random()
 
-    # 10% de chance de Azar Crítico (Ruína)
     if sorteio < 0.10:
         perda = random.randint(50, 150)
         usuario_data["dinheiro"] = max(0, usuario_data["dinheiro"] - perda)
-        usuario_data["azarado"] = True # O azar fica espreitando...
-        return f"💀 **RUÍNA!** A poção explodiu em fumaça negra. Você perdeu **{perda} Krugs** e sente uma aura de azar te perseguindo.", "azar"
+        usuario_data["azarado"] = True
+        return f"💀 **RUÍNA!** Perdeu **{perda} Krugs** e está azarado.", "azar"
 
-    # 45% de chance de Moedas
     elif sorteio < 0.55:
-        qtd = random.randint(50, 300)
+        min_m, max_m = constantes.VALOR_SORTE_MOEDAS
+        qtd = random.randint(min_m, max_m)
         usuario_data["dinheiro"] += qtd
-        return f"🍀 O destino sorriu! Você encontrou **{qtd} Krugs**.", "moedas"
+        return f"🍀 Você encontrou **{qtd} Krugs**!", "moedas"
 
-    # 45% de chance de Item
     else:
         item = random.choice(constantes.RECOMPENSAS_SORTE)
-        usuario_data["inventario"].append(item)
-        return f"🎁 O destino foi generoso! Você ganhou: **{item}**.", item
-
-def calcular_dano_nivel(nivel):
-    if nivel <= 2: return "1d6"
-    if nivel <= 5: return "1d8"
-    if nivel <= 10: return "2d6"
-    if nivel <= 15: return "2d8"
-    return "3d6" # Nível 16-20    
+        usuario_data.setdefault("inventario", []).append(item)
+        return f"🎁 O destino deu: **{item}**.", item

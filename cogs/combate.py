@@ -1,7 +1,9 @@
 import discord
+from discord.ext import commands
 import random
-from database import salvar_dados
+from database import carregar_dados, salvar_dados
 from cogs.logic import rolar_dado
+from main import eh_admin
 
 class BatalhaView(discord.ui.View):
     def __init__(self, mestre, atacante, defensor, dados_globais):
@@ -52,3 +54,39 @@ class BatalhaView(discord.ui.View):
         embed.add_field(name=self.p1["nome"], value=f"❤️ {self.p1['pv']} PV")
         embed.add_field(name=self.p2["nome"], value=f"❤️ {self.p2['pv']} PV")
         await interaction.response.edit_message(embed=embed, view=None if status else self)
+
+class Combate(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command()
+    async def batalha(ctx, op1: discord.Member, op2: discord.Member):
+        """Inicia um duelo entre dois jogadores usando a BatalhaView."""
+        if not eh_admin(ctx): 
+            return await ctx.send("🐾 **Lulu:** Apenas mestres podem abrir a arena.")
+                
+        dados = carregar_dados()
+        p1 = dados["usuarios"].get(str(op1.id))
+        p2 = dados["usuarios"].get(str(op2.id))
+
+        if not p1 or not p2:
+            return await ctx.send("🐾 **Lulu:** Ambos os duelistas precisam de uma ficha registrada.")
+
+        # Injetamos os IDs para a View saber quem é quem
+        p1["user_id"], p2["user_id"] = str(op1.id), str(op2.id)
+
+        # Criamos a arena (Aqui o BatalhaView é finalmente acessado!)
+        view = BatalhaView(ctx.author, p1, p2, dados)
+            
+        embed = discord.Embed(
+            title="⚔️ ARENA DE OCULTA ⚔️",
+            description=f"O duelo entre **{p1['nome']}** e **{p2['nome']}** começou!",
+            color=0xff0000
+        )
+        embed.add_field(name=p1['nome'], value=f"❤️ {p1['pv']} PV", inline=True)
+        embed.add_field(name=p2['nome'], value=f"❤️ {p2['pv']} PV", inline=True)
+            
+        await ctx.send(embed=embed, view=view)
+    
+    async def setup(bot):
+        await bot.add_cog(Combate(bot))
