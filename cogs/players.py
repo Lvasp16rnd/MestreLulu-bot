@@ -90,14 +90,14 @@ class Players(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def inventario(ctx):
+    async def inventario(self, ctx):
         p = carregar_dados()["usuarios"].get(str(ctx.author.id))
         if not p: return await ctx.send("🐾 **Lulu:** Registre-se.")
         inv = ", ".join(p["inventario"]) if p["inventario"] else "Vazio"
         await ctx.send(embed=discord.Embed(title=f"🎒 {ctx.author.name}", description=f"**Itens:** {inv}\n**Saldo:** {p['dinheiro']} Krugs"))
 
     @commands.command()
-    async def beber(ctx, *, item: str):
+    async def beber(self,ctx, *, item: str):
         user_id = str(ctx.author.id)
         dados = carregar_dados()
         p = dados["usuarios"].get(user_id)
@@ -118,7 +118,7 @@ class Players(commands.Cog):
         else: await ctx.send("🐾 **Lulu:** Isso não se bebe.")
 
     @commands.command()
-    async def historico(ctx):
+    async def historico(self, ctx):
         missoes = carregar_dados().get("missoes", [])[-5:]
         if not missoes: return await ctx.send("🐾 **Lulu:** Sem história.")
         txt = "\n".join([f"🔹 **{m['missao']}**: {', '.join(m['herois'])}" for m in reversed(missoes)])

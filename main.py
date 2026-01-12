@@ -26,7 +26,7 @@ def eh_admin(ctx):
 
 # --- CARREGAMENTO DE COGS ---
 async def load_extensions():
-    extensions = ["players", "mestre", "combate", "sistema", "habilidades"] 
+    extensions = ["cogs.players", "cogs.mestre", "cogs.combate", "cogs.sistema", "cogs.habilidades"]
     for ext in extensions:
         try:
             await bot.load_extension(ext)
@@ -37,8 +37,6 @@ async def load_extensions():
 # --- EVENTOS ---
 @bot.event
 async def on_ready():
-    # ESTE PASSO É VITAL: Carrega os outros arquivos assim que o bot liga
-    await load_extensions()
     print(f"🐾 Mestre Lulu online como {bot.user}")
 
 @bot.command()
@@ -85,4 +83,13 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-bot.run(TOKEN)
+async def main():
+    async with bot:
+        await load_extensions() 
+        await bot.start(TOKEN)  
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        pass
