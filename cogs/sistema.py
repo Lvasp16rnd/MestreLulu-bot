@@ -9,7 +9,7 @@ class Sistema(commands.Cog):
         self.bot = bot
     
     @commands.command()
-    async def registrar(ctx):
+    async def registrar(self, ctx):
         user_id = str(ctx.author.id)
         dados = carregar_dados()
         if user_id in dados["usuarios"]:
@@ -60,7 +60,7 @@ class Sistema(commands.Cog):
         await msg.edit(content=f"✨ **Mestre Lulu:** Ficha de {ctx.author.name} gravada! Bem-vindo ao RPG.", embed=None, view=None)
 
     @commands.command()
-    async def loja(ctx):
+    async def loja(self, ctx):
         dados = carregar_dados()
         cat = constantes.LOJA_ITENS.copy()
         if "loja_custom" in dados:
@@ -70,7 +70,7 @@ class Sistema(commands.Cog):
         await ctx.send("🐾 **Mestre Lulu:** Não toque em nada.", view=LojaView(cat))
 
     @commands.command()
-    async def lulu_ajuda(ctx):
+    async def lulu_ajuda(self, ctx):
         embed = discord.Embed(
             title="🐾 Central de Ajuda da Lulu",
             description="Olá! Eu sou a Lulu, a guardiã da sua jornada. Aqui estão as ordens que eu entendo:",

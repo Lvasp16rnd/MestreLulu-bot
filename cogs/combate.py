@@ -88,5 +88,5 @@ class Combate(commands.Cog):
             
         await ctx.send(embed=embed, view=view)
     
-    async def setup(bot):
-        await bot.add_cog(Combate(bot))
+async def setup(bot):
+    await bot.add_cog(Combate(bot))
