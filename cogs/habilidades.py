@@ -1,18 +1,17 @@
 import discord
 from discord.ext import commands
 import json
-import random # Import correto
+import random 
 from database import carregar_dados, salvar_dados
 import constantes
-# Importando o nome correto da função que você criou
 from habilidades_logic import processar_uso_habilidade 
 
 class Habilidades(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
-    async def usar(self, ctx, *, habilidade: str): # Adicionado self
+    @commands.hybrid_command(name="usar", description="Usa uma habilidade disponível")
+    async def usar(self, ctx, *, habilidade: str):
         user_id = str(ctx.author.id)
         dados = carregar_dados()
         p = dados["usuarios"].get(user_id)

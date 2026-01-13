@@ -8,7 +8,7 @@ class Players(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.hybrid_command(name="ficha", description="Mostra sua ficha de personagem")
     async def ficha(self, ctx, alvo: discord.Member = None):
         alvo = alvo or ctx.author
         p = carregar_dados()["usuarios"].get(str(alvo.id))
@@ -42,7 +42,7 @@ class Players(commands.Cog):
         
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.hybrid_command(name="descansar", description="Recupera pontos de vida usando descansos")
     async def descansar(self, ctx):
         user_id = str(ctx.author.id)
         dados = carregar_dados()
@@ -89,14 +89,14 @@ class Players(commands.Cog):
         salvar_dados(dados)
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.hybrid_command(name="inventario", description="Mostra seu inventário e saldo")
     async def inventario(self, ctx):
         p = carregar_dados()["usuarios"].get(str(ctx.author.id))
         if not p: return await ctx.send("🐾 **Lulu:** Registre-se.")
         inv = ", ".join(p["inventario"]) if p["inventario"] else "Vazio"
         await ctx.send(embed=discord.Embed(title=f"🎒 {ctx.author.name}", description=f"**Itens:** {inv}\n**Saldo:** {p['dinheiro']} Krugs"))
 
-    @commands.command()
+    @commands.hybrid_command(name="beber", description="Usa um item do inventário")
     async def beber(self,ctx, *, item: str):
         user_id = str(ctx.author.id)
         dados = carregar_dados()
@@ -117,14 +117,14 @@ class Players(commands.Cog):
             await ctx.send(f"⏳ Tempo manipulado! Recuperou {cura} PV.")
         else: await ctx.send("🐾 **Lulu:** Isso não se bebe.")
 
-    @commands.command()
+    @commands.hybrid_command(name="historico", description="Mostra as últimas missões")
     async def historico(self, ctx):
         missoes = carregar_dados().get("missoes", [])[-5:]
         if not missoes: return await ctx.send("🐾 **Lulu:** Sem história.")
         txt = "\n".join([f"🔹 **{m['missao']}**: {', '.join(m['herois'])}" for m in reversed(missoes)])
         await ctx.send(embed=discord.Embed(title="📖 Crônicas", description=txt))
 
-    @commands.command(name="dado", aliases=["roll", "r"])
+    @commands.hybrid_command(name="dado", aliases=["roll", "r"], description="Rola dados. Ex: !dado 2d6 ou !dado 1d100")
     async def dado(self, ctx, formula: str = "1d20"):
         """Rola dados. Ex: !dado 2d6 ou !dado 1d100"""
         try:

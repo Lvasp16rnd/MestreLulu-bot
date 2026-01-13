@@ -59,8 +59,8 @@ class Combate(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
-    async def batalha(ctx, op1: discord.Member, op2: discord.Member):
+    @commands.hybrid_command(name="batalha", description="Inicia um duelo entre dois jogadores (ADMs apenas)")
+    async def batalha(self, ctx, op1: discord.Member, op2: discord.Member):
         """Inicia um duelo entre dois jogadores usando a BatalhaView."""
         if not eh_admin(ctx): 
             return await ctx.send("🐾 **Lulu:** Apenas mestres podem abrir a arena.")

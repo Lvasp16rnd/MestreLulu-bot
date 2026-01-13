@@ -8,7 +8,7 @@ class Sistema(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @commands.command()
+    @commands.hybrid_command(name="registrar", description="Registra um novo jogador no sistema")
     async def registrar(self, ctx):
         user_id = str(ctx.author.id)
         dados = carregar_dados()
@@ -59,7 +59,7 @@ class Sistema(commands.Cog):
         salvar_dados(dados)
         await msg.edit(content=f"✨ **Mestre Lulu:** Ficha de {ctx.author.name} gravada! Bem-vindo ao RPG.", embed=None, view=None)
 
-    @commands.command()
+    @commands.hybrid_command(name="loja", description="Mostra a loja de itens disponíveis")
     async def loja(self, ctx):
         dados = carregar_dados()
         cat = constantes.LOJA_ITENS.copy()
@@ -69,11 +69,12 @@ class Sistema(commands.Cog):
                 else: cat[c] = it
         await ctx.send("🐾 **Mestre Lulu:** Não toque em nada.", view=LojaView(cat))
 
-    @commands.command()
+    @commands.hybrid_command(name="lulu_ajuda", description="Mostra o manual de ordens do Mestre Lulu")
     async def lulu_ajuda(self, ctx):
+        """Mostra o manual de ordens do Mestre Lulu."""
         embed = discord.Embed(
-            title="🐾 Central de Ajuda da Lulu",
-            description="Olá! Eu sou a Lulu, a guardiã da sua jornada. Aqui estão as ordens que eu entendo:",
+            title="🐾 Central de Ajuda do Mestre Lulu",
+            description="Olá! Eu sou o Mestre Lulu, o guardião da sua jornada. Aqui estão as ordens que eu entendo:",
             color=0x71368a
         )
         
@@ -87,7 +88,7 @@ class Sistema(commands.Cog):
         )
         embed.add_field(name="⚔️ Ação e Aventura", value=aventura, inline=False)
 
-        # Seção de Regras Lulu (Interação)
+        # Seção de Regras (Interação)
         regras = (
             "• **Sucesso:** Tire um valor igual ou maior que a DT.\n"
             "• **Azar:** Se você estiver azarado (💀), sua próxima rolagem tem -5.\n"
@@ -95,7 +96,7 @@ class Sistema(commands.Cog):
         )
         embed.add_field(name="📜 Regras Rápidas", value=regras, inline=False)
 
-        # Seção para o Mestre (Só aparece se quem digitou for Admin)
+        # Seção para o Mestre
         if ctx.author.guild_permissions.administrator:
             mestre = (
                 "**!registrar @usuario <raça>** - Cria uma nova ficha.\n"
@@ -105,8 +106,9 @@ class Sistema(commands.Cog):
             )
             embed.add_field(name="👑 Comandos de Mestre", value=mestre, inline=False)
 
-        embed.set_footer(text="A Lulu está de olho em você! Boa sorte na mesa.")
-        embed.set_thumbnail(url="URL_DE_UMA_IMAGEM_DA_LULU_SE_TIVER") # Opcional
+        embed.set_footer(text="O Mestre Lulu está de olho em você! Boa sorte na mesa.")
+        if self.bot.user.avatar:
+            embed.set_thumbnail(url=self.bot.user.avatar.url)
 
         await ctx.send(embed=embed)
 
