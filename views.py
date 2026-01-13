@@ -42,10 +42,13 @@ class LojaView(discord.ui.View):
     @discord.ui.select(
         placeholder="Escolha a ala da loja...",
         options=[
-            discord.SelectOption(label="Elfos de Elandor", value="elfos", emoji="🍃"),
-            discord.SelectOption(label="Khaerun de Kharr-Dum", value="khaerun", emoji="⚒️"),
-            discord.SelectOption(label="Fadas de Íris", value="fadas", emoji="✨"),
-            discord.SelectOption(label="Casa das Bruxas", value="bruxas", emoji="🧪")
+            discord.SelectOption(label="O Vel", value="elfos", emoji="🍃"),
+            discord.SelectOption(label="Rochas e Runas", value="khaerun", emoji="⚒️"),
+            discord.SelectOption(label="Loja de Íris", value="fadas", emoji="✨"),
+            discord.SelectOption(label="Casa das Bruxas", value="bruxas", emoji="🧪"),
+            discord.SelectOption(label="Veneno Silencioso", value="drows", emoji="💀"),
+            discord.SelectOption(label="A Caravna do Deserto", value="humanos", emoji="🏜️"),
+            discord.SelectOption(label="O Altar", value="fragmentados", emoji="⛩️")
         ]
     )
     async def select_categoria(self, interaction: discord.Interaction, select: discord.ui.Select):
