@@ -1,6 +1,6 @@
 # 🐾 Mestre Lulu - Discord RPG Bot
 
-A **Lulu** é um bot de gerenciamento de RPG de mesa para Discord, focado em automação de fichas, progressão por interpretação (XP por texto) e mecânicas de combate dinâmicas.
+O **Lulu** é um bot de gerenciamento de RPG de mesa para Discord, focado em automação de fichas, progressão por interpretação (XP por texto) e mecânicas de combate dinâmicas.
 
 ## 🌟 Funcionalidades Principais
 
