@@ -124,6 +124,23 @@ class Players(commands.Cog):
         txt = "\n".join([f"🔹 **{m['missao']}**: {', '.join(m['herois'])}" for m in reversed(missoes)])
         await ctx.send(embed=discord.Embed(title="📖 Crônicas", description=txt))
 
+    @commands.command(name="dado", aliases=["roll", "r"])
+    async def dado(self, ctx, formula: str = "1d20"):
+        """Rola dados. Ex: !dado 2d6 ou !dado 1d100"""
+        try:
+            # Importamos a função de lógica
+            from cogs.logic import rolar_dado
+            
+            resultado = rolar_dado(formula)
+            embed = discord.Embed(
+                title="🎲 O Dado Rolou!",
+                description=f"**Resultado:** `{resultado}`\n**Fórmula:** `{formula}`",
+                color=0x9b59b6
+            )
+            embed.set_footer(text=f"Lançado por {ctx.author.name}")
+            await ctx.send(embed=embed)
+        except Exception:
+            await ctx.send("🐾 **Lulu:** Formato inválido! Use algo como `!dado 1d20`.")
 
 # ESSA PARTE É OBRIGATÓRIA NO FINAL DO ARQUIVO:
 async def setup(bot):
