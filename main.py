@@ -37,6 +37,7 @@ async def load_extensions():
 # --- EVENTOS ---
 @bot.event
 async def on_ready():
+    await bot.tree.sync()
     print(f"🐾 Mestre Lulu online como {bot.user}")
 
 @bot.command()

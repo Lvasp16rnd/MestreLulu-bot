@@ -12,7 +12,7 @@ class Mestre(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.hybrid_command(name="upar", description="Sobe o nível de um jogador (ADMs apenas)")
     async def upar(self, self_ctx, alvo: discord.Member, n: int = 1): # Adicionado self
         ctx = self_ctx # Apenas para manter seu código igual abaixo
         if not eh_admin(ctx): return
@@ -47,7 +47,7 @@ class Mestre(commands.Cog):
             
             await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.hybrid_command(name="dar_xp", description="Dá XP a um jogador (ADMs apenas)")
     @commands.has_permissions(administrator=True)
     async def dar_xp(self, ctx, alvo: discord.Member, quantidade: int):
         dados = carregar_dados()
@@ -63,7 +63,7 @@ class Mestre(commands.Cog):
             
             await ctx.send(msg)
 
-    @commands.command()
+    @commands.hybrid_command(name="lulu_reset", description="Dá cargas de descanso para todos (ADMs apenas)")
     @commands.has_permissions(administrator=True) # Só você ou ADMs podem usar
     async def lulu_reset(self, ctx, quantidade: int = 1):
         dados = carregar_dados()
@@ -76,7 +76,7 @@ class Mestre(commands.Cog):
         salvar_dados(dados)
         await ctx.send(f"🐾 **Lulu:** Recuperei o fôlego de todos! Adicionei **{quantidade}** carga(s) de descanso para o grupo.")
 
-    @commands.command()
+    @commands.hybrid_command(name="lulu_azar", description="Amaldiçoa um jogador com azar (-5 na próxima rolagem) (ADMs apenas)")
     @commands.has_permissions(administrator=True)
     async def lulu_azar(self, ctx, alvo: discord.Member):
         dados = carregar_dados()
@@ -86,7 +86,7 @@ class Mestre(commands.Cog):
             salvar_dados(dados)
             await ctx.send(f"💀 **Lulu rosnou para {alvo.name}!** A nuvem do azar agora te persegue (-5 na próxima rolagem).")
 
-    @commands.command()
+    @commands.hybrid_command(name="setar", description="Define um atributo ou valor para um jogador (ADMs apenas)")
     async def setar(self, ctx, alvo: discord.Member, at: str, v: int):
         if not eh_admin(ctx): return
         dados = carregar_dados()
@@ -97,13 +97,12 @@ class Mestre(commands.Cog):
             salvar_dados(dados)
             await ctx.send(f"✅ {at} de {alvo.name} setado para {v}.")
 
-    @commands.command()
+    @commands.hybrid_command(name="concluir_missao", description="Conclui uma missão e distribui recompensas (ADMs apenas)")
     @commands.has_permissions(administrator=True)
-    async def concluir_missao(self, ctx): # Adicionado self
+    async def concluir_missao(self, ctx):
         def check(m): return m.author == ctx.author and m.channel == ctx.channel
         try:
             await ctx.send("📝 Nome da Missão?")
-            # MUDANÇA AQUI: de bot.wait_for para self.bot.wait_for
             msg_nome = await self.bot.wait_for("message", timeout=30, check=check)
             nome = msg_nome.content
             
@@ -126,7 +125,7 @@ class Mestre(commands.Cog):
             print(e)
             await ctx.send("🐾 **Lulu:** Erro no registro ou tempo esgotado.")
 
-    @commands.command()
+    @commands.hybrid_command(name="sorteio_missao", description="Sorteia uma equipe diversificada para uma missão (ADMs apenas)")
     async def sorteio_missao(self, ctx):
         if not eh_admin(ctx): return
         dados = carregar_dados()
@@ -141,7 +140,7 @@ class Mestre(commands.Cog):
         if len(equipe) < 5: return await ctx.send("🐾 **Lulu:** Diversidade de raças insuficiente.")
         await ctx.send(f"⚔️ **Escolhidos:**\n" + "\n".join([f"🔸 {n}" for n in equipe]))
 
-    @commands.command()
+    @commands.hybrid_command(name="evento", description="Cria um desafio para todos os jogadores com ficha (ADMs apenas)")
     async def evento(self, ctx, nome: str, dt: int, atributo: str, dano: int):
         """
         Cria um desafio para TODOS os jogadores com ficha.
