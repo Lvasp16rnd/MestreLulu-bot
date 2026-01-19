@@ -18,14 +18,34 @@ class LojaCompraSelect(discord.ui.Select):
             return await interaction.response.send_message("🐾 **Lulu:** Você não tem uma alma registrada.", ephemeral=True)
 
         item_nome = self.values[0]
-        # Aqui buscamos o item em todas as categorias para achar o preço
         lojas = interaction.view.catalogo
         item_info = None
+        
         for cat in lojas.values():
             if item_nome in cat:
                 item_info = cat[item_nome]
                 break
 
+        if item_nome == "Marca da Exclusão":
+            inventario = usuario.get("inventario", [])
+        
+            if "Asa de Fada" in inventario and "Olho de Dragão" in inventario:
+                if "Marca da Exclusão" not in inventario:
+                    inventario.remove("Asa de Fada")
+                    inventario.remove("Olho de Dragão")
+                    inventario.append("Marca da Exclusão")
+                    salvar_dados(dados)
+                    return await interaction.response.send_message(
+                        "🔥 **O ritual foi concluído!** Sereth Vaul queimou a Marca em sua pele. Você não é mais um de nós.", 
+                        ephemeral=True
+                    )
+                else:
+                    return await interaction.response.send_message("⚠️ Você já carrega a Marca.", ephemeral=True)
+            else:
+                return await interaction.response.send_message(
+                    "❌ **Sereth Vaul rosna:** 'Traga-me uma **Asa de Fada** e um **Olho de Dragão**, ou saia daqui!'", 
+                    ephemeral=True
+                )
         if usuario["dinheiro"] >= item_info["preco"]:
             usuario["dinheiro"] -= item_info["preco"]
             usuario["inventario"].append(item_nome)
@@ -65,6 +85,46 @@ class LojaView(discord.ui.View):
             embed.add_field(name=nome, value=f"💰 {info['preco']} Krugs\n*{info['desc']}*", inline=False)
             
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+    async def processar_compra(self, interaction, item_nome, dados_item):
+        user_id = str(interaction.user.id)
+        dados = carregar_dados()
+        player = dados["usuarios"][user_id]
+
+        # --- LÓGICA ESPECIAL PARA A MARCA DA EXCLUSÃO ---
+        if item_nome == "Marca da Exclusão":
+            inventario = player.get("inventario", [])
+            
+            if "Asa de Fada" in inventario and "Olho de Dragão" in inventario:
+                inventario.remove("Asa de Fada")
+                inventario.remove("Olho de Dragão")
+                
+                if "Marca da Exclusão" not in inventario:
+                    inventario.append("Marca da Exclusão")
+                    salvar_dados(dados)
+                    await interaction.response.send_message(
+                        "🔥 **O ritual foi concluído!** Sereth Vaul queimou a Marca em sua pele. Você não é mais um de nós.", 
+                        ephemeral=True
+                    )
+                else:
+                    await interaction.response.send_message("⚠️ Você já carrega a Marca.", ephemeral=True)
+                return
+            else:
+                await interaction.response.send_message(
+                    "❌ **Sereth Vaul rosna:** 'Traga-me uma Asa de Fada e um Olho de Dragão, ou saia daqui!'", 
+                    ephemeral=True
+                )
+                return
+
+        # --- LÓGICA DE COMPRA NORMAL (DINHEIRO) ---
+        preco = dados_item["preco"]
+        if player["dinheiro"] >= preco:
+            player["dinheiro"] -= preco
+            player["inventario"].append(item_nome)
+            salvar_dados(dados)
+            await interaction.response.send_message(f"✅ Você comprou **{item_nome}**!", ephemeral=True)
+        else:
+            await interaction.response.send_message("❌ Krugs insuficientes!", ephemeral=True)
 
 class MenuRPG(discord.ui.View):
     def __init__(self, ctx):

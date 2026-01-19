@@ -1,6 +1,3 @@
-# constantes.py
-
-# Definição das Raças e bônus iniciais
 RACAS = {
     "Elfo": "Altos e magros, conectados à natureza. Especialidade: Arqueiros e Magia Natural.",
     "Khaerun": "Pele mineral e olhos incandescentes. Especialidade: Armas vivas e combate pesado.",
@@ -69,7 +66,6 @@ DIFICULDADES = {
     "Difícil": 16
 }
 
-# Tabelas de Progressão baseadas no seu novo sistema
 PROGRESSAO = {
     "1-5":  {"pv": 30, "escudo": 5, "dado_escudo": "1d6"},
     "6-10": {"pv": 60, "escudo": 7, "dado_escudo": "1d8"},
@@ -77,7 +73,6 @@ PROGRESSAO = {
     "16-20": {"pv": 100, "escudo": 11, "dado_escudo": "2d8"}
 }
 
-# Itens com Atributos Técnicos para o Código
 LOJA_ITENS = {
     "elfos": {
         "Flechas de Sol": {"preco": 180, "dano_bonus": 3, "desc": "+3 de dano. Rapidez solar."},
@@ -91,15 +86,14 @@ LOJA_ITENS = {
         "Martelo do Eco Profundo": {"preco": 1200, "dado": "2d8", "desc": "Impacto reverberante. Pode derrubar ou atordoar."},
         "Escudo da Vigília Ancestral": {"preco": 1100, "escudo_bonus": 6, "desc": "+6 de Escudo. Resistência extrema."},
         "Machado das Runas de Sangue": {"preco": 1500, "dano_portador": "1d4", "dano_adversario": "1d10", "desc": "-1d4 no portador, 1d10 no adversário + dano perdido."},
-        "Elmo da Rocha Silenciosa": {"preco": 950, "presenca_bonus": 2, "agilidade_bonus": 2, "desc": "+2 presença e agilidade. Imunidade a medo e intimidação."},
+        "Elmo da Rocha Silenciosa": {"preco": 950, "presenca_bonus": 2, "agilidade_bonus": -2, "desc": "+2 presença e agilidade. Imunidade a medo e intimidação."},
         "Corrente do Conselho Partido": {"preco": 600, "efeito": "autoridade_ancestral", "desc": "Impõe respeito em assembleias e negociações."},
         "Proibida": {"preco": 1900, "dado_area": "1d30", "alcance": 10, "desc": "+1d30 de dano em área (10m). Mercadoria proibida."}
     },
     "fadas": {
         "Véu da Última Lembrança": {"preco": 450, "efeito": "imunidade_medo", "desc": "Apaga lembrança dolorosa. Imunidade a medo, culpa ou trauma."},
         "Pulseiras do Batimento Lúmino": {"preco": 350, "carisma_bonus": 3, "desc": "+3 de carisma. Aumenta empatia e persuasão."},
-        "Frasco de Luz Engarrafada": {"preco": 300, "dado_dano": "1d6", "alvo": "coracoes_corrompidos", "desc": "1d6 de dano em corações corrompidos. Purifica maldições."},
-        "Asas de Orvalho Esquecido": {"preco": 520, "efeito": "levitacao", "desc": "Levitação e movimento silencioso."},
+        "Frasco de Luz Engarrafada": { "preco": 300, "dado_dano": "1d6", "alvo": "coracoes_corrompidos", "tipo": "arremessavel", "desc": "Arremesse para causar 1d6 de dano em corações corrompidos."},        "Asas de Orvalho Esquecido": {"preco": 520, "efeito": "levitacao", "desc": "Levitação e movimento silencioso."},
         "Colar do Nome Verdadeiro": {"preco": 480, "dt_mentira": 18, "desc": "DT 18 para qualquer um que quiser mentir para o usuário."},
         "Sementes do Recomeço Lento": {"preco": 250, "dado_cura_area": "1d15", "alvos_max": 3, "desc": "+1d15 de cura em área (até 3 criaturas)."}
     },
@@ -134,16 +128,17 @@ LOJA_ITENS = {
     }
 }
 
-# Itens que podem ser ganhos ao usar a Poção da Sorte (itens de tier baixo/médio)
 RECOMPENSAS_SORTE = [
     "Flechas de Sol", 
     "Cenouras Cantantes", 
     "Frascos de Alquimia Errante", 
     "Veneno da Lua Incerta",
-    "Sementes do Recomeço Lento"
+    "Sementes do Recomeço Lento",
+    "Asa de Fada",
+    "Olho de Dragão"
 ]
 
-VALOR_SORTE_MOEDAS = (50, 300) # Min e Max de moedas
+VALOR_SORTE_MOEDAS = (50, 300) 
 
 TABELA_NIVEIS = {
     "1-2":   {"pv": 30, "ca": 5,  "dado": "1d6"},

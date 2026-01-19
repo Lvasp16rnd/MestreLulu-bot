@@ -43,7 +43,7 @@
         "falha_3_4": "Um espírito confuso ou errado responde no lugar."
     },
     "Chamas Etéreas": {
-      "dt": 15, "categoria": "Média",
+      "dt": 15, "categoria": "Média", "tags": ["corrompido", "ataque"],
       "descricao": "Fogo puro que queimará apenas aquilo que “merece” — mentiras, corrupção, maldade ou intenções escuras.\nChamas não aquecem o mundo físico, apenas o moral.\n.",
       "falha_1_2": "As chamas surgem fracas ou instáveis.",
       "falha_3_4": "As chamas atingem um alvo não intencionado (mas de modo leve)."
@@ -63,7 +63,7 @@
       },
   "Fada": {
     "Luz de Cura": {
-      "dt": 14, "categoria": "Fácil", "tipo": "Cura",
+      "dt": 14, "categoria": "Fácil", "tipo": "Cura", "tags": ["cura"],
       "descricao": "Consegue curar feridas físicas e emocionais ao tocar com sua luz.\nA cura devolve serenidade e vitalidade, alcançando cortes, dores internas e sofrimento leve.\n",
       "falha_1_2": "A luz cura apenas superficialmente, deixando dor residual.",
       "falha_3_4": "A luz desperta emoções reprimidas, causando instabilidade emocional."
@@ -75,7 +75,7 @@
       "falha_3_4": "A fada sofre leve dor de cabeça pelo excesso de vozes naturais."
     },
     "Pó Encantado": {
-        "dt": 14, "categoria": "Fácil",
+        "dt": 14, "categoria": "Fácil", "tags":["social"],
         "descricao": "Cria ilusões, influencia sonhos rápidos ou confunde criaturas temporariamente.\nPode distrair inimigos, manipular percepções ou induzir euforia leve.\n",
         "falha_1_2": "A ilusão fica fraca e se desfaz rapidamente.",
         "falha_3_4": "O pó ricocheteia e afeta a própria fada ou um aliado próximo."
@@ -87,7 +87,7 @@
       "falha_3_4": "A energia atrai criaturas naturais curiosas ou territoriais."
     },
     "Riso da Confusão": {
-        "dt": 15, "categoria": "Média",
+        "dt": 15, "categoria": "Média","tags": ["social"],
       "descricao": "Encantamento que causa riso incontrolável e desorientação no alvo.\nPerfeito para interromper ataques ou quebrar tensão.\n",
       "falha_1_2": "O feitiço atinge um aliado próximo.",
       "falha_3_4": "A fada perde o controle e entra em crise de riso sozinha."
@@ -99,7 +99,7 @@
         "falha_3_4": "A névoa falha, causando tontura intensa."
     },
     "Encantamento Musical": {
-      "dt": 15, "categoria": "Média",
+      "dt": 15, "categoria": "Média","tags": ["social"],
       "descricao": "Com canto ou melodia, a fada altera emoções profundas — acalma, inspira, reduz medo ou ódio.\nEfeito especialmente forte em criaturas sensíveis à magia.\n",
       "falha_1_2": "Em vez de acalmar, a música provoca irritação ou ansiedade.",
       "falha_3_4": "A própria fada se emociona demais e perde o controle do feitiço."
@@ -117,7 +117,7 @@
         "falha_3_4": "O azar recai sobre a própria fada por instantes."
     },
     "Lagrima Estelar": {
-        "dt": 16, "categoria": "Difícil",
+        "dt": 16, "categoria": "Difícil", "tags":["corrompido"],
         "descricao": "Uma lágrima luminosa capaz de purificar magia sombria, remover maldições e dissipar corrupção espiritual.\nÉ um poder raro e extremamente poderoso.\n",
         "falha_1_2": "A lágrima evapora antes de agir.",
         "falha_3_4": "A energia sombria reage violentamente, causando um choque espiritual leve."
@@ -149,19 +149,19 @@
       "falha_3_4": "A árvore absorve energia e deixa o elfo esgotado por 1 turno."
     },
     "Encanto da Harmonia": {
-        "dt":14, "categoria": "Fácil",
+        "dt":14, "categoria": "Fácil", "tags": ["social"],
         "descricao": "Gera paz e cooperação entre seres naturais ao seu redor.\nCriaturas hostis se acalmam e o ambiente entra em equilíbrio.\n",
         "falha_1_2": "O encanto soa estranho, deixando criaturas inquietas.",
         "falha_3_4": "Os seres naturais ignoram o elfo completamente."
     },
     "Cântico de Renovação": {
-        "dt":15, "categoria": "Média", "tipo": "Cura", "valor_fixo": "1d6",
+        "dt":15, "categoria": "Média", "tipo": "Cura", "valor_fixo": "1d6", "tags":["cura"],
         "descricao": "Canta melodias capazes de curar profundas feridas físicas ou espirituais.\n",
         "falha_1_2": "A magia se desestabiliza e causa 1d4 de dor espiritual.",
         "falha_3_4": "A voz falha e o elfo não pode usar magia no próximo turno."
     },
     "Controle Vegetal": {
-        "dt":15, "categoria": "Média",
+        "dt":15, "categoria": "Média", "tags":["cura"],
         "descricao": "Canaliza energia estelar para regenerar força própria ou de aliados.\nHabilidade de Cura\n",
         "falha_1_2": "As plantas crescem caoticamente e falham em ajudar.",
         "falha_3_4": "As raízes agarram acidentalmente um aliado."
@@ -173,13 +173,13 @@
         "falha_3_4": "A energia se volta contra o elfo e o enfraquece temporariamente."
     },
     "Reflexos Élficos": {
-        "dt":14, "categoria": "Fácil",
+        "dt":14, "categoria": "Fácil", "tags": ["defesa"],
         "descricao": "Capacidade de antecipar movimentos e esquivar ataques com graça sobrenatural.\nO elfo esquiva com precisão e pode se reposicionar vantajosamente.\n",
         "falha_1_2": "A esquiva é tardia — recebe metade do dano.",
         "falha_3_4": "Ele se desequilibra e tem desvantagem no próximo teste."
     },
     "Aura de Pureza": {
-        "dt":15, "categoria": "Média",
+        "dt":15, "categoria": "Média","tags": ["defesa"],
         "descricao": "Protege contra venenos, ilusões ou magias sombrias dentro de um raio próximo.\nO alvo recebe proteção temporária contra corrupções e venenos.\n",
         "falha_1_2": "A aura não se manifesta.",
         "falha_3_4": "A aura falha e deixa o alvo vulnerável a influências sombrias."
@@ -199,7 +199,7 @@
         "falha_3_4": "O canto não penetra a pedra; nada é revelado."
     },
     "Pele de Obsidiana":{
-        "dt":14, "categoria": "Fácil",
+        "dt":14, "categoria": "Fácil", "tags":["defesa"],
         "descricao": "A pele do Khaerun endurece formando placas minerais, reduzindo dano físico e\ntornando o corpo mais pesado e resistente.\n",
         "falha_1_2": "As placas se formam pela metade, deixando falhas vulneráveis.",
         "falha_3_4": "A pele endurece em excesso, limitando movimentos"
@@ -211,7 +211,7 @@
         "falha_3_4": "A leitura de calor/magia é distorcida e fornece informações erradas."
     },
     "Punho Rachado": {
-        "dt": 15, "categoria": "Média",
+        "dt": 15, "categoria": "Média", "tags": ["atordoar"],
         "descricao": "Golpe que libera energia sísmica capaz de rachar armaduras, derrubar inimigos ou\nabrir pequenas fendas no solo.\n",
         "falha_1_2": "A energia reverbera no próprio braço, causando dor.",
         "falha_3_4": "A onda sísmica não se forma; o golpe sai comum."
@@ -249,7 +249,7 @@
   },
   "Drow": {
     "Sombra Viva": {
-        "dt": 14, "categoria": "Fácil",
+        "dt": 14, "categoria": "Fácil","tags": ["furtivo", "ataque"],
         "descricao": "Manipula sombras para se esconder, atacar ou viajar rapidamente entre pontos escuros.\nAs sombras respondem ao comando, escondendo o drow, estendendo ataques ou permitindo deslocamento instantâneo entre áreas escuras.\n",
         "falha_1_2": "As sombras se dissipam, revelando sua posição.",
         "falha_3_4": "Ele é puxado parcialmente para a escuridão e perde 1 turno se recompondo."
@@ -279,7 +279,7 @@
         "falha_3_4": "A escuridão se volta contra o drow, reduzindo sua própria visão."
     },
     "Chicote dos Subterrâneos": {
-        "dt": 14, "categoria": "Fácil",
+        "dt": 14, "categoria": "Fácil","tags": ["elfo", "fada", "khaerun", "ataque"],
         "descricao": "Cria armas vivas feitas de energia negra para atacar instantaneamente.\nA arma sombria se forma e atinge com velocidade sobrenatural.\n",
         "falha_1_2": "O chicote se desfaz antes de atacar.",
         "falha_3_4": "Ele se volta contra o drow, causando um golpe leve."
@@ -291,7 +291,7 @@
         "falha_3_4": "A teia escorre na direção errada e prende um aliado próximo."
     },
     "Voz Enfeitiçadora": {
-        "dt": 16, "categoria": "Difícil",
+        "dt": 16, "categoria": "Difícil", "tags": ["social"],
         "descricao": "Encanta e manipula mentes fracas, tornando-os servos temporários.\nO alvo cede ao encanto e segue ordens básicas do drow por curto período.\n",
         "falha_1_2": "O encanto é ignorado completamente.",
         "falha_3_4": "A voz falha e o drow perde momentaneamente sua capacidade de persuasão."
@@ -303,7 +303,7 @@
         "falha_3_4": "Algo do outro lado percebe o drow — criando risco futuro ou atraindo atenção hostil."
     },
     "Resistência Sombria": {
-        "dt": 14, "categoria": "Fácil",
+        "dt": 14, "categoria": "Fácil", "tags":["defesa"],
         "descricao": "Imunidade a magias de luz, encantamentos positivos e ilusão de pureza.\nO drow ignora completamente magias luminosas e purificadoras.\n",
         "falha_1_2": "A resistência não se ativa no momento necessário.",
         "falha_3_4": "Uma brecha se abre e o drow se torna vulnerável por alguns segundos."
@@ -341,13 +341,13 @@
         "falha_3_4": "O humano ativa acidentalmente sua própria armadilha."
     },
     "Determinação Humana": {
-        "dt": 14, "categoria": "Fácil",
+        "dt": 14, "categoria": "Fácil","tags": ["defesa"],
         "descricao": "Resiste ao medo, dor ou coação física e psicológica.\n",
         "falha_1_2": "A resistência quebra e cede ao medo.",
         "falha_3_4": "A tensão causa exaustão por 1 turno."
     },
     "Instinto de Sobrevivência": {
-        "dt": 14, "categoria": "Fácil",
+        "dt": 14, "categoria": "Fácil", "tags":["defesa"],
         "descricao": "Evita perigos naturais, reconhece ameaças e toma decisões rápidas.\n",
         "falha_1_2": "Ele subestima a situação.",
         "falha_3_4": "Reage tarde e sofre penalidade."
@@ -359,7 +359,7 @@
         "falha_3_4": "O frasco quebra incorretamente e atinge o próprio usuário."
     },
     "Medicina Improvisada": {
-        "dt": 14, "categoria": "Fácil", "tipo": "Cura", "valor_fixo": "1d6",
+        "dt": 14, "categoria": "Fácil", "tipo": "Cura", "valor_fixo": "1d6", "tags":["cura"],
         "descricao": "Usa ervas, bandagens, álcool e técnicas básicas para recuperar 1d6 PV.\n",
         "falha_1_2": "O curativo falha e não regenera nada.",
         "falha_3_4": "A ferida inflama levemente (perde 1d4 PV)."
@@ -409,19 +409,19 @@
         "falha_3_4": "Ele perde memória temporária de algo importante."
     },
     "Empatia Ruinosa": {
-        "dt": 14, "categoria": "Fácil",
+        "dt": 14, "categoria": "Fácil", "tags": ["social"],
         "descricao": "O fragmentado sente emoções alheias, mas de forma distorcida e profunda.\n",
         "falha_1_2": "Interpreta tudo errado.",
         "falha_3_4": "Absorve dor emocional e fica abalado."
     },
     "Alma Desalinhada": {
-        "dt": 16, "categoria": "Difícil",
+        "dt": 16, "categoria": "Difícil", "tags": ["defesa"],
         "descricao": "Por alguns segundos, o fragmentado não está totalmente 'presente', tornando-se difícil acertá-lo.\n",
         "falha_1_2": "O corpo desincroniza e cai.",
         "falha_3_4": "Sente dor intensa do deslocamento."
     },
     "Ruptura Mental": {
-        "dt": 15, "categoria": "Média",
+        "dt": 15, "categoria": "Média","tags": ["defesa"],
         "descricao": "Sua mente resiste a ilusões, pesadelos e controle, mas de forma agressiva.\n",
         "falha_1_2": "A influência mental o domina.",
         "falha_3_4": "Ele cria sua própria ilusão e se confunde."

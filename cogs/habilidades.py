@@ -34,7 +34,7 @@ class Habilidades(commands.Cog):
         try:
             with open("habilidades.json", "r", encoding="utf-8") as f:
                 biblioteca = json.load(f)
-            dados_hab = biblioteca.get(raca, {}).get(habilidade.title())
+                dados_hab = biblioteca.get(raca, {}).get(habilidade.title())
         except:
             return await ctx.send("⚠️ **Erro:** Falha ao ler habilidades.json.")
 
@@ -43,27 +43,34 @@ class Habilidades(commands.Cog):
 
         # 3. SISTEMA DE AZAR
         mod = -5 if p.get("azarado") else 0
+        azar_msg = ""
         if p.get("azarado"): 
             p["azarado"] = False
-            await ctx.send("⚠️ **O Azar Acumulado te atingiu! (-5)**")
+            azar_msg = "⚠️ **O Azar Acumulado te atingiu! (-5)**\n"
 
         # 4. PROCESSAR LÓGICA (Usando seu arquivo habilidades_logic.py)
         res = processar_uso_habilidade(p, dados_hab, mod)
         
         embed = discord.Embed(title=f"✨ {p['nome']} usou {habilidade.title()}")
+        
+        # --- DETALHE DO CÁLCULO (VISUAL) ---
+        info_calculo = f"🎲 **Teste:** {res['dado_puro']} + {res['atributo_valor']} ({res['atributo_nome']})"
+        if mod != 0: info_calculo += f" - 5 (Azar)"
+        info_calculo += f" = **{res['total']}**"
 
         # 5. RESULTADOS (Sucesso)
         if res["sucesso"]:
             embed.color = discord.Color.green()
             if res["cura"] > 0:
-                p["pv"] = min(p.get("pv_max", 30), p["pv"] + res["cura"])
-                embed.description = f"✅ **Sucesso!** (Rolagem: {res['total']})\n{dados_hab['descricao']}\n\n💖 **Cura:** +{res['cura']} PV | ❤️ **Vida:** {p['pv']}/{p.get('pv_max', 30)}"
+                pv_max = constantes.TABELA_NIVEIS.get(str(p['nivel']), {"pv": 30})["pv"]
+                p["pv"] = min(pv_max, p["pv"] + res["cura"])
+                embed.description = f"{azar_msg}✅ **Sucesso!**\n{info_calculo} (DT: {res['dt_applied']})\n\n*{dados_hab['descricao']}*\n\n💖 **Cura:** +{res['cura']} PV | ❤️ **Vida:** {p['pv']}/{pv_max}"
             else:
-                embed.description = f"✅ **Sucesso!** (Rolagem: {res['total']})\n{dados_hab['descricao']}\n\n⚔️ **Resultado:** {res['dano']}"
+                embed.description = f"{azar_msg}✅ **Sucesso!**\n{info_calculo} (DT: {res['dt_applied']})\n\n*{dados_hab['descricao']}*\n\n⚔️ **Dano:** {res['dano']}"
         
         # 6. RESULTADOS (Falha)
         else:
-            d4 = random.randint(1, 4) # Lógica de falha mantida aqui para facilitar as frases do JSON
+            d4 = random.randint(1, 4)
             consequencia = dados_hab["falha_1_2"] if d4 <= 2 else dados_hab["falha_3_4"]
             
             dano_falha_texto = ""
@@ -73,11 +80,14 @@ class Habilidades(commands.Cog):
                 dano_falha_texto = f"\n💔 **Recuo:** -{perda} PV"
 
             embed.color = discord.Color.red()
-            embed.description = f"❌ **Falha!** (Rolagem: {res['total']})\n**Dado de Falha (d4):** {d4}\n\n**O que aconteceu:** {consequencia}{dano_falha_texto}"
+            embed.description = f"{azar_msg}❌ **Falha!**\n{info_calculo} (DT: {res['dt_applied']})\n**Dado de Falha (d4):** {d4}\n\n**O que aconteceu:** {consequencia}{dano_falha_texto}"
+
+        # 🎒 7. LOG DE ITENS (ADICIONADO)
+        if res["logs"]:
+            embed.add_field(name="🎒 Itens Utilizados", value="\n".join([f"• {log}" for log in res["logs"]]), inline=False)
 
         salvar_dados(dados)
         await ctx.send(embed=embed)
 
-# SETUP FORA DA CLASSE
 async def setup(bot):
     await bot.add_cog(Habilidades(bot))
