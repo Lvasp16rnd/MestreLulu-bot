@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+import constantes
 from database import carregar_dados, salvar_dados
 from cogs.logic import calcular_dano_nivel, rolar_dado, usar_pocao_sorte
 import random
@@ -47,26 +48,31 @@ class Players(commands.Cog):
         user_id = str(ctx.author.id)
         dados = carregar_dados()
         p = dados["usuarios"].get(user_id)
-        if not p: return await ctx.send("🐾 **Lulu:** Sem alma, sem sono.")
+        
+        if not p: 
+            return await ctx.send("🐾 **Lulu:** Sem alma, sem sono.")
+        
+        nivel_str = str(p.get("nivel", 1))
+        info_nivel = constantes.TABELA_NIVEIS.get(nivel_str, {"pv": 30})
+        pv_max = info_nivel["pv"]
 
-        # Verifica se tem cargas de descanso (padrão 0 se não existir no JSON ainda)
         cargas = p.get("descansos", 0)
+        pv_atual = p.get("pv", 0)
 
         if cargas <= 0:
             return await ctx.send(f"🐾 **Lulu:** {p['nome']}, você está exausto, mas não tem mais tempo para pausas agora! (0 descansos restantes)")
 
-        if p["pv"] >= p["pv_max"]:
+        if pv_atual >= pv_max:
             return await ctx.send(f"🐾 **Lulu:** Por que dormir se você está inteiro? Vá lutar!")
 
         # Lógica de Cura
-        dado_cura = calcular_dano_nivel(p["nivel"])
+        dado_cura = p.get("dado", "1d6") 
         cura = rolar_dado(dado_cura)
-        p["pv"] = min(p["pv_max"], p["pv"] + cura)
         
-        # Consome uma carga
-        p["descansos"] -= 1
+        p["pv"] = min(pv_max, pv_atual + cura)
+        p["descansos"] = cargas - 1
 
-        # Frases da Lulu vigiando
+        # Frases do Lulu
         frases_lulu = [
             "Fiquem tranquilos, meus olhinhos estão atentos a qualquer sombra...",
             "Podem babar à vontade, eu aviso se algo tentar devorar vocês.",
@@ -78,11 +84,13 @@ class Players(commands.Cog):
 
         embed = discord.Embed(
             title=f"💤 {p['nome']} montou acampamento",
-            description=f"O cansaço diminui enquanto você recupera as forças.\n\n"
-                        f"💖 **Recuperado:** +{cura} PV\n"
-                        f"❤️ **Vida Atual:** {p['pv']}/{p['pv_max']}\n"
-                        f"⛺ **Descansos Restantes:** {p['descansos']}\n\n"
-                        f"🐾 **Vigilância da Lulu:** *\"{vigilancia}\"*",
+            description=(
+                f"O cansaço diminui enquanto você recupera as forças.\n\n"
+                f"💖 **Recuperado:** +{cura} PV\n"
+                f"❤️ **Vida Atual:** {p['pv']}/{pv_max}\n"
+                f"⛺ **Descansos Restantes:** {p['descansos']}\n\n"
+                f"🐾 **Vigilância da Lulu:** *\"{vigilancia}\"*"
+            ),
             color=0x2c3e50
         )
     
@@ -142,6 +150,5 @@ class Players(commands.Cog):
         except Exception:
             await ctx.send("🐾 **Lulu:** Formato inválido! Use algo como `!dado 1d20`.")
 
-# ESSA PARTE É OBRIGATÓRIA NO FINAL DO ARQUIVO:
 async def setup(bot):
     await bot.add_cog(Players(bot))

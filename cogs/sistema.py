@@ -61,13 +61,25 @@ class Sistema(commands.Cog):
 
     @commands.hybrid_command(name="loja", description="Mostra a loja de itens disponíveis")
     async def loja(self, ctx):
-        dados = carregar_dados()
-        cat = constantes.LOJA_ITENS.copy()
-        if "loja_custom" in dados:
-            for c, it in dados["loja_custom"].items():
-                if c in cat: cat[c].update(it)
-                else: cat[c] = it
-        await ctx.send("🐾 **Mestre Lulu:** Não toque em nada.", view=LojaView(cat))
+        await ctx.defer() 
+        
+        try:
+            dados = carregar_dados()
+            import copy
+            cat = copy.deepcopy(constantes.LOJA_ITENS)
+            
+            if "loja_custom" in dados:
+                for c, it in dados["loja_custom"].items():
+                    if c in cat: 
+                        cat[c].update(it)
+                    else: 
+                        cat[c] = it
+            
+            await ctx.send("🐾 **Mestre Lulu:** Não toque em nada, ou vai perder um dedo.", view=LojaView(cat))
+            
+        except Exception as e:
+            print(f"Erro na loja: {e}")
+            await ctx.send("⚠️ **Mestre Lulu:** Minha loja está bagunçada agora, volte mais tarde.")
 
     @commands.hybrid_command(name="lulu_ajuda", description="Mostra o manual de ordens do Mestre Lulu")
     async def lulu_ajuda(self, ctx):

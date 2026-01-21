@@ -30,7 +30,6 @@ class Habilidades(commands.Cog):
         if habilidade.lower() not in hab_liberadas:
             return await ctx.send(f"🐾 **Lulu:** Você não conhece '{habilidade}' ou seu nível é baixo.")
 
-        # 2. CARREGAR DADOS DO JSON
         try:
             with open("habilidades.json", "r", encoding="utf-8") as f:
                 biblioteca = json.load(f)
@@ -82,7 +81,6 @@ class Habilidades(commands.Cog):
             embed.color = discord.Color.red()
             embed.description = f"{azar_msg}❌ **Falha!**\n{info_calculo} (DT: {res['dt_applied']})\n**Dado de Falha (d4):** {d4}\n\n**O que aconteceu:** {consequencia}{dano_falha_texto}"
 
-        # 🎒 7. LOG DE ITENS (ADICIONADO)
         if res["logs"]:
             embed.add_field(name="🎒 Itens Utilizados", value="\n".join([f"• {log}" for log in res["logs"]]), inline=False)
 
