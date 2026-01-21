@@ -15,7 +15,6 @@ class Sistema(commands.Cog):
         if user_id in dados["usuarios"]:
             return await ctx.send("🐾 **Mestre Lulu:** Tu já tens uma ficha.")
 
-        # 1. Seleção de Raça
         view_raca = SelecaoRacaView(list(constantes.RACAS.keys()))
         msg = await ctx.send("🐾 **Mestre Lulu:** Escolha sua linhagem:", view=view_raca)
         await view_raca.wait()
@@ -25,7 +24,6 @@ class Sistema(commands.Cog):
 
         raca = view_raca.raca_escolhida
 
-        # 2. Distribuição de Pontos
         view_pts = DistribuiPontosView(ctx, raca)
         await msg.edit(content=None, embed=view_pts.gerar_embed(), view=view_pts)
         await view_pts.wait()
@@ -33,8 +31,6 @@ class Sistema(commands.Cog):
         if not view_pts.finalizado:
             return await msg.edit(content="🐾 **Lulu:** Cancelado por inatividade.", embed=None, view=None)
 
-        # 3. Salvando Tudo
-        # Mapeamos os nomes da View para as chaves do Banco de Dados
         res = view_pts.attrs
         dados["usuarios"][user_id] = {
             "nome": ctx.author.name,

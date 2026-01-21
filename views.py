@@ -215,6 +215,15 @@ class DistribuiPontosView(discord.ui.View):
         }
         self.finalizado = False
 
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user != self.ctx.author:
+            await interaction.response.send_message(
+                "🐾 **Lulu:** Ei! Não toque nos atributos dos outros. Crie sua própria ficha!", 
+                ephemeral=True
+            )
+            return False
+        return True    
+
     def gerar_embed(self):
         embed = discord.Embed(
             title="✨ Distribuição de Atributos",
@@ -307,7 +316,7 @@ class DistribuiPontosView(discord.ui.View):
     async def confirmar(self, interaction, button):
         if self.pontos_restantes == 0:
             self.finalizado = True
-            await interaction.response.send_message("✅ Atributos confirmados!", ephemeral=True)
+            await interaction.response.edit_message(content="✅ **Ficha Finalizada!** Seus atributos foram salvos.", view=None, embed=self.gerar_embed())
             self.stop()
         else:
             await interaction.response.send_message(f"Ainda restam {self.pontos_restantes} pontos para distribuir!", ephemeral=True)
