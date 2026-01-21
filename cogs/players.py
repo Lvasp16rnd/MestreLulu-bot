@@ -4,6 +4,7 @@ import constantes
 from database import carregar_dados, salvar_dados
 from cogs.logic import calcular_dano_nivel, rolar_dado, usar_pocao_sorte
 import random
+import datetime
 
 class Players(commands.Cog):
     def __init__(self, bot):
@@ -65,14 +66,12 @@ class Players(commands.Cog):
         if pv_atual >= pv_max:
             return await ctx.send(f"🐾 **Lulu:** Por que dormir se você está inteiro? Vá lutar!")
 
-        # Lógica de Cura
         dado_cura = p.get("dado", "1d6") 
         cura = rolar_dado(dado_cura)
         
         p["pv"] = min(pv_max, pv_atual + cura)
         p["descansos"] = cargas - 1
 
-        # Frases do Lulu
         frases_lulu = [
             "Fiquem tranquilos, meus olhinhos estão atentos a qualquer sombra...",
             "Podem babar à vontade, eu aviso se algo tentar devorar vocês.",
@@ -96,6 +95,52 @@ class Players(commands.Cog):
     
         salvar_dados(dados)
         await ctx.send(embed=embed)
+
+    @commands.hybrid_command(name="trabalhar", description="Trabalhe para ganhar Krugs K$")
+    async def trabalhar(self, ctx):
+        user_id = str(ctx.author.id)
+        dados = carregar_dados()
+        p = dados["usuarios"].get(user_id)
+        
+        if not p: 
+            return await ctx.send("🐾 **Lulu:** Sem alma, sem trabalho. Registre-se primeiro.")
+
+        agora = datetime.datetime.now()
+        ultimo_trabalho_str = p.get("ultimo_trabalho")
+        
+        if ultimo_trabalho_str:
+            ultimo_trabalho = datetime.datetime.fromisoformat(ultimo_trabalho_str)
+            diferenca = agora - ultimo_trabalho
+            
+            if diferenca.total_seconds() < 3600:
+                segundos_restantes = int(3600 - diferenca.total_seconds())
+                minutos = segundos_restantes // 60
+                return await ctx.send(f"⏳ **Lulu:** Você já trabalhou demais por agora! Volte em **{minutos} minutos**.")
+
+        ganhos = random.randint(50, 150) + (p.get("nivel", 1) * 2)
+        
+        p["dinheiro"] = p.get("dinheiro", 0) + ganhos
+        p["ultimo_trabalho"] = agora.isoformat()
+        
+        profissoes = [
+            "ajudou na forja de Rochas e Runas",
+            "caçou pragas nos jardins de O Vel",
+            "limpou os frascos na Casa das Bruxas",
+            "carregou fardos na Caravana do Último Pacto",
+            "vigiou as fronteiras de Veneno Silencioso",
+            "coletou essências de sonhos para as Fadas de Íris",
+            "poliu as joias raras no Altar dos Fragmentados",
+            "ajudou na colheita das frutas luminescentes de Lúmen",
+            "extraiu minérios raros das cavernas profundas de Kharr-Dum" 
+        ]
+        servico = random.choice(profissoes)
+
+        salvar_dados(dados)
+        
+        await ctx.send(
+            f"💼 **{p['nome']}** {servico} e recebeu **{ganhos} K$**!\n"
+            f"💰 **Saldo Atual:** {p['dinheiro']} K$"
+        )     
 
     @commands.hybrid_command(name="inventario", description="Mostra seu inventário e saldo")
     async def inventario(self, ctx):
@@ -136,7 +181,6 @@ class Players(commands.Cog):
     async def dado(self, ctx, formula: str = "1d20"):
         """Rola dados. Ex: !dado 2d6 ou !dado 1d100"""
         try:
-            # Importamos a função de lógica
             from cogs.logic import rolar_dado
             
             resultado = rolar_dado(formula)
