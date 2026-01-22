@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import constantes
 from database import carregar_dados, salvar_dados
-from cogs.logic import aplicar_dano_complexo, processar_xp_acumulado
+from cogs.logic import aplicar_dano_complexo, aplicar_status_nivel, processar_xp_acumulado
 from mecanicas import adicionar_xp
 import random
 
@@ -21,31 +21,27 @@ class Mestre(commands.Cog):
         p = dados["usuarios"].get(str(alvo.id))
         
         if p:
+            # 1. Apenas sobe o nível e descansos (SEM MEXER NO XP)
             p["nivel"] = p.get("nivel", 1) + n
             p["descansos"] = p.get("descansos", 0) + n
             
-            for faixa, st in constantes.TABELA_NIVEIS.items():
-                f_inicio = int(faixa.split('-')[0])
-                f_fim = int(faixa.split('-')[1])
-                
-                if f_inicio <= p["nivel"] <= f_fim:
-                    p["pv_max"] = st["pv"] 
-                    p["ca"] = st["ca"]
-                    p["dado_nivel"] = st["dado"] 
-                    p["pv"] = p["pv_max"]
-                    break
+            # 2. Atualiza os status (PV, CA, Dado) baseados no novo nível
+            aplicar_status_nivel(p)
             
             salvar_dados(dados)
+            
+            # 3. Lógica de exibição do XP na mensagem de confirmação
+            xp_atual = p.get("xp", 0)
+            xp_max = p["nivel"] * 100
             
             embed = discord.Embed(
                 title="🎊 NOVO NÍVEL ALCANÇADO!",
                 description=f"**{alvo.display_name}** agora é Nível **{p['nivel']}**!",
                 color=0x00ff00
             )
-            embed.add_field(name="🎲 Novo Dado", value=p.get('dado_nivel', '1d6'), inline=True)
-            embed.add_field(name="⛺ Bônus", value=f"+{n} Carga de Descanso", inline=True)
+            embed.add_field(name="🎲 Dado", value=p.get('dado_nivel', '1d6'), inline=True)
+            embed.add_field(name="✨ Experiência", value=f"{xp_atual}/{xp_max}", inline=True)
             embed.add_field(name="❤️ Vida Máxima", value=f"{p['pv_max']} PV", inline=False)
-            embed.set_footer(text="A Lulu está orgulhosa do seu progresso!")
             
             await ctx.send(embed=embed)
         else:
@@ -102,16 +98,50 @@ class Mestre(commands.Cog):
             salvar_dados(dados)
             await ctx.send(f"💀 **Lulu rosnou para {alvo.name}!** A nuvem do azar agora te persegue (-5 na próxima rolagem).")
 
-    @commands.hybrid_command(name="setar", description="Define um atributo ou valor para um jogador (ADMs apenas)")
+    @commands.hybrid_command(name="setar", description="Define atributos, nível ou XP (ADMs apenas)")
+    @commands.has_permissions(administrator=True)
     async def setar(self, ctx, alvo: discord.Member, at: str, v: int):
-        if not eh_admin(ctx): return
+        if not eh_admin(ctx): 
+            return await ctx.send("🐾 **Lulu:** Você não tem autoridade para isso!")
+            
         dados = carregar_dados()
         uid = str(alvo.id)
+        
         if uid in dados["usuarios"]:
-            if at.lower() in dados["usuarios"][uid]["atributos"]: dados["usuarios"][uid]["atributos"][at.lower()] = v
-            else: dados["usuarios"][uid][at.lower()] = v
+            p = dados["usuarios"][uid]
+            atributo = at.lower()
+
+            # 1. Se o mestre setar o XP total
+            if atributo == "xp":
+                p["xp"] = max(0, v)
+                p["nivel"] = 1 # Reseta para re-calcular o nível correto com base no novo XP
+                from cogs.logic import processar_xp_acumulado
+                processar_xp_acumulado(p, 0)
+                msg = f"✨ XP de {alvo.name} setado para {v} (Nível ajustado para {p['nivel']})."
+
+            # 2. Se o mestre setar o NÍVEL diretamente
+            elif atributo == "nivel":
+                p["nivel"] = max(1, v)
+                # Ajusta o XP para o mínimo do novo nível para não ficar "XP baixo/Nível alto"
+                p["xp"] = (p["nivel"] - 1) * 100
+                from cogs.logic import aplicar_status_nivel
+                aplicar_status_nivel(p)
+                msg = f"🧬 Nível de {alvo.name} setado para {v} (XP sincronizado para {p['xp']})."
+
+            # 3. Se for um atributo (FOR, AGI, etc)
+            elif atributo in p["atributos"]:
+                p["atributos"][atributo] = v
+                msg = f"✅ Atributo {at.upper()} de {alvo.name} setado para {v}."
+
+            # 4. Outros campos (dinheiro, descansos, etc)
+            else:
+                p[atributo] = v
+                msg = f"✅ Campo {at} de {alvo.name} setado para {v}."
+
             salvar_dados(dados)
-            await ctx.send(f"✅ {at} de {alvo.name} setado para {v}.")
+            await ctx.send(f"🐾 **Lulu:** {msg}")
+        else:
+            await ctx.send("🐾 **Lulu:** Usuário não encontrado.")
 
     @commands.hybrid_command(name="concluir_missao", description="Conclui uma missão e distribui recompensas (ADMs apenas)")
     @commands.has_permissions(administrator=True)

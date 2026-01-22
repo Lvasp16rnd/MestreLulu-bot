@@ -101,6 +101,12 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
+@bot.command()
+@commands.is_owner()
+async def sync(ctx):
+    await bot.tree.sync()
+    await ctx.send("Comandos sincronizados!")
+
 async def main():
     async with bot:
         await load_extensions() 

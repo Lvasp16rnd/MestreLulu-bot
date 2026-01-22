@@ -20,22 +20,38 @@ class Players(commands.Cog):
         sorte = p["nivel"] + (at.get("presenca", 0) * 2)
         descansos = p.get("descansos", 0)
 
-        embed = discord.Embed(title=f"📜 Ficha de {p['nome']}", color=0x71368a)
-        embed.add_field(name="🧬 Raça/Nível", value=f"{p['raca']} Lvl {p['nivel']}", inline=True)
+        # --- NOVA LÓGICA DE BARRA DE XP (RELATIVA) ---
+        xp_total = p.get("xp", 0)
+        nivel_atual = p["nivel"]
         
-        embed.add_field(name="❤️ PV | 🛡️ Escudo | ⛺", value=f"{p['pv']} | {p['ca']} | ({descansos})", inline=True)
+        xp_piso = (nivel_atual - 1) * 100 # O XP que ele precisou para chegar neste nível
+        xp_teto = nivel_atual * 100     # O XP necessário para o PRÓXIMO nível
+        
+        # Quanto ele já ganhou dentro desse nível específico
+        xp_relativo = xp_total - xp_piso
+        # Quanto falta ganhar no total dentro deste nível (sempre 100 no seu sistema)
+        alcance_nivel = xp_teto - xp_piso 
+
+        # Calcula o percentual baseado apenas no que falta para o próximo lvl
+        percentual = min(max(xp_relativo / alcance_nivel, 0), 1.0) if alcance_nivel > 0 else 0
+        
+        num_quadrados = int(percentual * 10)
+        barra = "◈" * num_quadrados + "◇" * (10 - num_quadrados)
+        # ---------------------------------------------
+
+        embed = discord.Embed(title=f"📜 Ficha de {p['nome']}", color=0x71368a)
+        embed.add_field(name="🧬 Raça/Nível", value=f"{p['raca']} Lvl {nivel_atual}", inline=True)
+        embed.add_field(name="❤️ PV | 🛡️ Escudo | ⛺", value=f"{p['pv']}/{p['pv_max']} | {p['ca']} | ({descansos})", inline=True)
         embed.add_field(name="🍀 Sorte", value=str(sorte), inline=True)
 
-        xp_atual = p.get("xp", 0)
-        xp_max = p.get("xp_max", 500)
-        barra = "◈" * int((xp_atual/xp_max)*10) + "◇" * (10 - int((xp_atual/xp_max)*10))
-
-        embed.add_field(name=f"📊 XP ({xp_atual}/{xp_max})", value=f"`{barra}`", inline=False)
+        # Mostra o XP Total/XP Máximo, mas a barra reflete o progresso do nível atual
+        embed.add_field(name=f"📊 XP ({xp_total}/{xp_teto})", value=f"`{barra}`", inline=False)
 
         status = "💀 **AZARADO**" if p.get("azarado") else "✨ Normal"
         embed.add_field(name="Status", value=status, inline=True)
         
-        dado_atual = calcular_dano_nivel(p["nivel"])
+        from cogs.logic import calcular_dano_nivel # Garante que a função seja lida
+        dado_atual = calcular_dano_nivel(nivel_atual)
         embed.add_field(name="🎲 Dado Atual", value=dado_atual, inline=True)
         
         attrs = f"FOR: {at['forca']} | AGI: {at['agilidade']} | INT: {at['intelecto']}\nPRE: {at['presenca']} | CAR: {at['carisma']}"

@@ -67,35 +67,45 @@ def aplicar_dano_complexo(p_data, dano_bruto):
             
     return log, False
 
+def aplicar_status_nivel(p):
+    """Lê a TABELA_NIVEIS e define PV, CA e Dado estáticos conforme a faixa."""
+    import constantes
+    nivel = p.get("nivel", 1)
+    for faixa, st in constantes.TABELA_NIVEIS.items():
+        try:
+            f_inicio, f_fim = map(int, faixa.split('-'))
+            if f_inicio <= nivel <= f_fim:
+                # Volta a ser estático: define o valor exato da tabela
+                p["pv_max"] = st["pv"]
+                p["ca"] = st["ca"]
+                p["dado_nivel"] = st["dado"]
+                p["pv"] = p["pv_max"] # Cura total ao subir de nível
+                return True
+        except:
+            continue
+    return False
+
 def processar_xp_acumulado(p, quantidade_ganha):
+    # XP Acumulativo Total (não subtrai)
     p["xp"] = p.get("xp", 0) + quantidade_ganha
-    upou_pelo_menos_uma_vez = False
+    upou = False
     
     while True:
         nivel_atual = p.get("nivel", 1)
-        if nivel_atual >= 20: 
-            break
+        if nivel_atual >= 20: break
             
+        # Meta: Nível atual * 100
         xp_necessario = nivel_atual * 100 
         
         if p["xp"] >= xp_necessario:
-            p["xp"] -= xp_necessario
             p["nivel"] += 1
             p["descansos"] = p.get("descansos", 0) + 1
-            upou_pelo_menos_uma_vez = True
-            
-            for faixa, st in constantes.TABELA_NIVEIS.items():
-                f_inicio, f_fim = map(int, faixa.split('-'))
-                if f_inicio <= p["nivel"] <= f_fim:
-                    p["pv_max"] = st["pv"]
-                    p["ca"] = st["ca"]
-                    p["dado_nivel"] = st["dado"]
-                    p["pv"] = p["pv_max"] 
-                    break
+            aplicar_status_nivel(p) 
+            upou = True
         else:
-            break
+            break 
             
-    return upou_pelo_menos_uma_vez
+    return upou
 
 def usar_pocao_sorte(usuario_data):
     sorteio = random.random()
