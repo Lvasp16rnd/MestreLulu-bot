@@ -19,10 +19,8 @@ def aplicar_dano_complexo(p_data, dano_bruto):
     Função ÚNICA para aplicar dano. 
     Calcula Escudo e verifica Fada.
     """
-    # Se o jogador não tiver o campo 'ca', assume 0
     escudo = p_data.get("ca", 0)
     
-    # Bônus de itens específicos
     if "Escudo da Vigília Ancestral" in p_data.get("inventario", []):
         escudo += 6
         
@@ -31,13 +29,11 @@ def aplicar_dano_complexo(p_data, dano_bruto):
     
     log = f"💢 Dano: {dano_bruto} - Escudo: {escudo} = **{dano_final} sofrido.**"
     
-    # Lógica da Fada
     if p_data["pv"] <= 0:
         if "Fada" in p_data.get("inventario", []):
             p_data["inventario"].remove("Fada")
             nivel = p_data.get("nivel", 1)
             v_max = 30
-            # Busca vida máxima nas constantes
             for faixa, valores in constantes.PROGRESSAO.items():
                 partes = faixa.split('-')
                 if int(partes[0]) <= nivel <= int(partes[1]):
@@ -52,6 +48,36 @@ def aplicar_dano_complexo(p_data, dano_bruto):
             return log, True
             
     return log, False
+
+def processar_xp_acumulado(p, quantidade_ganha):
+    p["xp"] = p.get("xp", 0) + quantidade_ganha
+    upou_pelo_menos_uma_vez = False
+    
+    while True:
+        nivel_atual = p.get("nivel", 1)
+        if nivel_atual >= 20: 
+            break
+            
+        xp_necessario = nivel_atual * 100 
+        
+        if p["xp"] >= xp_necessario:
+            p["xp"] -= xp_necessario
+            p["nivel"] += 1
+            p["descansos"] = p.get("descansos", 0) + 1
+            upou_pelo_menos_uma_vez = True
+            
+            for faixa, st in constantes.TABELA_NIVEIS.items():
+                f_inicio, f_fim = map(int, faixa.split('-'))
+                if f_inicio <= p["nivel"] <= f_fim:
+                    p["pv_max"] = st["pv"]
+                    p["ca"] = st["ca"]
+                    p["dado_nivel"] = st["dado"]
+                    p["pv"] = p["pv_max"] 
+                    break
+        else:
+            break
+            
+    return upou_pelo_menos_uma_vez
 
 def usar_pocao_sorte(usuario_data):
     sorteio = random.random()

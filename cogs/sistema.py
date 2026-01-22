@@ -79,42 +79,51 @@ class Sistema(commands.Cog):
 
     @commands.hybrid_command(name="lulu_ajuda", description="Mostra o manual de ordens do Mestre Lulu")
     async def lulu_ajuda(self, ctx):
-        """Mostra o manual de ordens do Mestre Lulu."""
+        """Mostra o manual de ordens do Mestre Lulu atualizado."""
         embed = discord.Embed(
             title="🐾 Central de Ajuda do Mestre Lulu",
-            description="Olá! Eu sou o Mestre Lulu, o guardião da sua jornada. Aqui estão as ordens que eu entendo:",
+            description="Olá! Eu sou o Mestre Lulu. Não toque em nada, mas se tocar, use estes comandos:",
             color=0x71368a
         )
         
-        # Seção de Aventura
+        # Seção de Aventura e Combate
         aventura = (
-            "**!ficha** [@usuario] - Veja sua ficha, vida e atributos.\n"
-            "**!habilidades** - Liste as técnicas que você já liberou.\n"
-            "**!usar <nome>** - Use uma habilidade da sua raça.\n"
-            "**!descansar** - Use uma carga de acampamento (⛺) para curar PV.\n"
-            "**!d <expressão>** - Rola dados genéricos (ex: !d 2d10+5)."
+            "**!ficha** - Veja seu status, atributos e Krugs.\n"
+            "**!menu** - Abre o painel interativo (Ficha, Inv, Loja).\n"
+            "**!usar <nome>** - Usa uma habilidade (Bônus de itens aplicados automaticamente).\n"
+            "**!descansar** - Recupera PV usando uma carga de acampamento (⛺).\n"
+            "**!d <expressão>** - Rolagem de dados (ex: `!d 1d20+2`)."
         )
         embed.add_field(name="⚔️ Ação e Aventura", value=aventura, inline=False)
 
-        # Seção de Regras (Interação)
-        regras = (
-            "• **Sucesso:** Tire um valor igual ou maior que a DT.\n"
-            "• **Azar:** Se você estiver azarado (💀), sua próxima rolagem tem -5.\n"
-            "• **Cura:** O descanso recupera PV baseado no seu nível atual."
+        # Seção de Economia e Progresso
+        economia = (
+            "**!trabalhar** - Realize tarefas para ganhar K$ (1h de cooldown).\n"
+            "**!loja** - Visite as alas do mercado para comprar equipamentos.\n"
+            "**!inventario** - Veja o que você carrega na mochila."
         )
-        embed.add_field(name="📜 Regras Rápidas", value=regras, inline=False)
+        embed.add_field(name="💰 Economia e Itens", value=economia, inline=False)
 
-        # Seção para o Mestre
+        # Seção de Regras e Itens Inteligentes
+        regras = (
+            "• **Tags de Itens:** Ter itens como *Flechas de Sol* ou *Frasco de Luz* no inventário dá bônus automáticos ao usar certas habilidades.\n"
+            "• **Marca da Exclusão:** Troque uma *Asa de Fada* + *Olho de Dragão* no Altar (Loja Fragmentados) por defesa permanente.\n"
+            "• **Level Up:** Ao ganhar XP suficiente do Mestre, você sobe de nível e recupera toda sua vida!"
+        )
+        embed.add_field(name="📜 Regras e Segredos", value=regras, inline=False)
+
+        # Seção Secreta para o Mestre
         if ctx.author.guild_permissions.administrator:
             mestre = (
-                "**!registrar @usuario <raça>** - Cria uma nova ficha.\n"
-                "**!upar @usuario [n]** - Sobe o nível e dá bônus.\n"
-                "**!lulu_reset [n]** - Dá cargas de descanso para todos.\n"
-                "**!lulu_azar @usuario** - Amaldiçoa um jogador com -5."
+                "**!dar_xp @usuario <qtd>** - Dá XP (processa níveis e sobras automaticamente).\n"
+                "**!upar @usuario [n]** - Força o aumento de nível imediato.\n"
+                "**!registrar @usuario** - Inicia o processo de criação de ficha.\n"
+                "**!lulu_azar @usuario** - Amaldiçoa com -5 no próximo dado."
             )
             embed.add_field(name="👑 Comandos de Mestre", value=mestre, inline=False)
 
-        embed.set_footer(text="O Mestre Lulu está de olho em você! Boa sorte na mesa.")
+        embed.set_footer(text="Mestre Lulu: 'A sorte favorece os audazes... e quem me trouxer petiscos.'")
+        
         if self.bot.user.avatar:
             embed.set_thumbnail(url=self.bot.user.avatar.url)
 
