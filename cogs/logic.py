@@ -2,9 +2,27 @@ import random
 import constantes
 
 def rolar_dado(string_dado):
-    """Converte '2d6' em resultado numérico"""
-    qtd, faces = map(int, string_dado.split('d'))
-    return sum(random.randint(1, faces) for _ in range(qtd))
+    """
+    Suporta '2d10' (soma) e '2#d10' (maior valor).
+    Retorna (resultado_final, lista_de_dados, modo)
+    """
+    string_dado = string_dado.lower().replace(" ", "")
+    
+    if '#' in string_dado:
+        partes = string_dado.split('#')
+        qtd = int(partes[0])
+        faces_str = partes[1].replace('d', '')
+        faces = int(faces_str)
+        
+        resultados = [random.randint(1, faces) for _ in range(qtd)]
+        return max(resultados), resultados, "maior"
+
+    elif 'd' in string_dado:
+        qtd, faces = map(int, string_dado.split('d'))
+        resultados = [random.randint(1, faces) for _ in range(qtd)]
+        return sum(resultados), resultados, "soma"
+    
+    return 0, [], "erro"
 
 def calcular_dano_nivel(nivel):
     """Retorna o dado de dano base do jogador conforme o nível"""

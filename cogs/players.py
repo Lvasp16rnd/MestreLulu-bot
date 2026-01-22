@@ -177,22 +177,35 @@ class Players(commands.Cog):
         txt = "\n".join([f"🔹 **{m['missao']}**: {', '.join(m['herois'])}" for m in reversed(missoes)])
         await ctx.send(embed=discord.Embed(title="📖 Crônicas", description=txt))
 
-    @commands.hybrid_command(name="dado", aliases=["roll", "r"], description="Rola dados. Ex: !dado 2d6 ou !dado 1d100")
+    @commands.hybrid_command(name="dado", aliases=["roll", "r"], description="Rola dados. Ex: 2d6 ou 3#d12")
     async def dado(self, ctx, formula: str = "1d20"):
-        """Rola dados. Ex: !dado 2d6 ou !dado 1d100"""
         try:
             from cogs.logic import rolar_dado
             
-            resultado = rolar_dado(formula)
-            embed = discord.Embed(
-                title="🎲 O Dado Rolou!",
-                description=f"**Resultado:** `{resultado}`\n**Fórmula:** `{formula}`",
-                color=0x9b59b6
-            )
+            resultado, dados_rolados, modo = rolar_dado(formula)
+            
+            if modo == "erro":
+                return await ctx.send("🐾 **Lulu:** Formato inválido!")
+
+            embed = discord.Embed(title="🎲 O Dado Rolou!", color=0x9b59b6)
+            
+            if modo == "maior":
+                lista_dados = ", ".join(map(str, dados_rolados))
+                embed.description = (
+                    f"Foram rolados **{len(dados_rolados)}** dados: `{lista_dados}`\n"
+                    f"🏆 **O maior valor foi:** `{resultado}`"
+                )
+            else:
+                embed.description = f"**Resultado:** `{resultado}`\n**Dados:** `{dados_rolados}`"
+            
+            embed.add_field(name="📋 Fórmula", value=f"`{formula}`")
             embed.set_footer(text=f"Lançado por {ctx.author.name}")
+            
             await ctx.send(embed=embed)
-        except Exception:
-            await ctx.send("🐾 **Lulu:** Formato inválido! Use algo como `!dado 1d20`.")
+            
+        except Exception as e:
+            print(f"Erro no dado: {e}")
+            await ctx.send("🐾 **Lulu:** Formato inválido! Use `2d6` ou `3#d12`.")
 
 async def setup(bot):
     await bot.add_cog(Players(bot))
