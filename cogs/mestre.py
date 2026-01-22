@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import constantes
 from database import carregar_dados, salvar_dados
-from cogs.logic import aplicar_dano_complexo
+from cogs.logic import aplicar_dano_complexo, processar_xp_acumulado
 from mecanicas import adicionar_xp
 import random
 
@@ -13,14 +13,15 @@ class Mestre(commands.Cog):
         self.bot = bot
 
     @commands.hybrid_command(name="upar", description="Sobe o nível de um jogador (ADMs apenas)")
-    async def upar(self, self_ctx, alvo: discord.Member, n: int = 1): # Adicionado self
-        ctx = self_ctx # Apenas para manter seu código igual abaixo
-        if not eh_admin(ctx): return
+    async def upar(self, ctx, alvo: discord.Member, n: int = 1):
+        if not eh_admin(ctx): 
+            return await ctx.send("🐾 **Lulu:** Você não tem autoridade para isso!")
+            
         dados = carregar_dados()
         p = dados["usuarios"].get(str(alvo.id))
         
         if p:
-            p["nivel"] += n
+            p["nivel"] = p.get("nivel", 1) + n
             p["descansos"] = p.get("descansos", 0) + n
             
             for faixa, st in constantes.TABELA_NIVEIS.items():
@@ -30,45 +31,60 @@ class Mestre(commands.Cog):
                 if f_inicio <= p["nivel"] <= f_fim:
                     p["pv_max"] = st["pv"] 
                     p["ca"] = st["ca"]
-                    p["dado_nivel"] = st["dado"]
-                    p["pv"] = p["pv_max"] 
+                    p["dado_nivel"] = st["dado"] 
+                    p["pv"] = p["pv_max"]
                     break
             
             salvar_dados(dados)
+            
             embed = discord.Embed(
                 title="🎊 NOVO NÍVEL ALCANÇADO!",
-                description=f"**{alvo.name}** agora é Nível **{p['nivel']}**!",
+                description=f"**{alvo.display_name}** agora é Nível **{p['nivel']}**!",
                 color=0x00ff00
             )
-            embed.add_field(name="🎲 Novo Dado", value=p['dado_nivel'], inline=True)
+            embed.add_field(name="🎲 Novo Dado", value=p.get('dado_nivel', '1d6'), inline=True)
             embed.add_field(name="⛺ Bônus", value=f"+{n} Carga de Descanso", inline=True)
-            embed.add_field(name="❤️ Vida Atualizada", value=f"{p['pv']}/{p['pv_max']}", inline=False)
+            embed.add_field(name="❤️ Vida Máxima", value=f"{p['pv_max']} PV", inline=False)
             embed.set_footer(text="A Lulu está orgulhosa do seu progresso!")
             
             await ctx.send(embed=embed)
+        else:
+            await ctx.send("🐾 **Lulu:** Esse humano nem tem ficha ainda.")
 
-    @commands.hybrid_command(name="dar_xp", description="Dá XP a um jogador (ADMs apenas)")
-    @commands.has_permissions(administrator=True)
+    @commands.hybrid_command(name="dar_xp", description="Dá XP e processa níveis (ADMs)")
     async def dar_xp(self, ctx, alvo: discord.Member, quantidade: int):
+        if not eh_admin(ctx): 
+            return await ctx.send("🐾 **Lulu:** Você não tem autoridade para distribuir conhecimento.")
+
+        await ctx.defer()
+        
         dados = carregar_dados()
         p = dados["usuarios"].get(str(alvo.id))
         
-        if p:
-            upou = adicionar_xp(p, quantidade)
-            salvar_dados(dados)
-            
-            msg = f"✨ **{alvo.name}** recebeu {quantidade} de XP!"
-            if upou:
-                msg += f"\n🎊 **LEVEL UP!** Agora você é nível {p['nivel']}!"
-            
-            await ctx.send(msg)
+        if not p:
+            return await ctx.send("🐾 **Lulu:** Esse alvo não tem alma registrada.")
+
+        nivel_anterior = p.get("nivel", 1)
+        upou = processar_xp_acumulado(p, quantidade)
+        salvar_dados(dados)
+        
+        if upou:
+            embed = discord.Embed(
+                title="🎊 GRANDE PROGRESSO!",
+                description=f"**{alvo.display_name}** recebeu **{quantidade} XP** e saltou do nível {nivel_anterior} para o **{p['nivel']}**!",
+                color=0x00ff00
+            )
+            embed.add_field(name="❤️ Vida Atualizada", value=f"{p['pv_max']} PV", inline=True)
+            embed.add_field(name="✨ XP Atual", value=f"{p['xp']} (Próximo nível: {p['nivel'] * 100})", inline=True)
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send(f"✨ **{alvo.display_name}** ganhou **{quantidade} XP**! (Total: {p['xp']}/{p['nivel']*100})")
 
     @commands.hybrid_command(name="lulu_reset", description="Dá cargas de descanso para todos (ADMs apenas)")
-    @commands.has_permissions(administrator=True) # Só você ou ADMs podem usar
+    @commands.has_permissions(administrator=True) 
     async def lulu_reset(self, ctx, quantidade: int = 1):
         dados = carregar_dados()
         
-        # Dá 'quantidade' de descansos para TODOS os jogadores registrados
         for user_id in dados["usuarios"]:
             p = dados["usuarios"][user_id]
             p["descansos"] = p.get("descansos", 0) + quantidade

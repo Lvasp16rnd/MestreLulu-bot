@@ -6,9 +6,9 @@ import random
 import os, time
 from dotenv import load_dotenv
 
-# Imports de banco e lógica
+from cogs.logic import processar_xp_acumulado
 from database import carregar_dados, salvar_dados
-from mecanicas import adicionar_xp # Mantendo apenas este
+from mecanicas import adicionar_xp 
 from views import MenuRPG 
 
 load_dotenv()
@@ -63,24 +63,41 @@ async def on_message(message):
     user_id = str(message.author.id)
     agora = time.time()
     
-    # Sistema de XP por texto
     if agora - cooldown_xp.get(user_id, 0) > 60:
         dados = carregar_dados()
         if user_id in dados["usuarios"]:
             p = dados["usuarios"][user_id]
-            if len(message.content) >= 1000:
-                cooldown_xp[user_id] = agora 
+            
+            p.setdefault("palavras_acumuladas", 0)
+            p.setdefault("xp", 0)
+            
+            todas_palavras = message.content.split()
+            palavras_filtradas = [palavra for palavra in todas_palavras if len(palavra) >= 4]
+            contagem_valida = len(palavras_filtradas)
+            
+            if contagem_valida > 0:
+                p["palavras_acumuladas"] += contagem_valida
                 
-                # Garante que os campos existem
-                if "xp" not in p: p["xp"] = 0
-                if "xp_max" not in p: p["xp_max"] = 500
-                
-                if adicionar_xp(p, 150): # Usa a lógica do mecanicas.py
-                    await message.channel.send(f"🎊 **{p['nome']}** subiu para o nível **{p['nivel']}**!")
+                META_PALAVRAS = 1000 
+                XP_RECOMPENSA = 100
+
+                if p["palavras_acumuladas"] >= META_PALAVRAS:
+                    premios = p["palavras_acumuladas"] // META_PALAVRAS
+                    xp_total_ganho = premios * XP_RECOMPENSA
+                    
+                    p["palavras_acumuladas"] %= META_PALAVRAS
+                    
+                    upou = processar_xp_acumulado(p, xp_total_ganho)
+                    
+                    cooldown_xp[user_id] = agora
+                    salvar_dados(dados)
+
+                    if upou:
+                        await message.channel.send(f"🎊 **{p['nome']}** atingiu a meta de escrita e subiu para o nível **{p['nivel']}**!")
+                    else:
+                        await message.channel.send(f"📖 **RP Acumulado!** {p['nome']} completou {META_PALAVRAS} palavras relevantes e ganhou {xp_total_ganho} XP.", delete_after=10)
                 else:
-                    await message.channel.send(f"📖 **RP Recompensado!** {p['nome']} ganhou 150 XP.", delete_after=10)
-                
-                salvar_dados(dados)
+                    salvar_dados(dados)
 
     await bot.process_commands(message)
 
