@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import constantes
 from database import carregar_dados, salvar_dados
-from cogs.logic import aplicar_dano_complexo, processar_xp_acumulado
+from cogs.logic import aplicar_dano_complexo, aplicar_status_nivel, processar_xp_acumulado
 from mecanicas import adicionar_xp
 import random
 
@@ -21,31 +21,32 @@ class Mestre(commands.Cog):
         p = dados["usuarios"].get(str(alvo.id))
         
         if p:
-            p["nivel"] = p.get("nivel", 1) + n
+            # Salvamos o nível antigo para saber quantos passos dar
+            nivel_antigo = p.get("nivel", 1)
+            
+            # Sincroniza descansos
             p["descansos"] = p.get("descansos", 0) + n
             
-            for faixa, st in constantes.TABELA_NIVEIS.items():
-                f_inicio = int(faixa.split('-')[0])
-                f_fim = int(faixa.split('-')[1])
-                
-                if f_inicio <= p["nivel"] <= f_fim:
-                    p["pv_max"] = st["pv"] 
-                    p["ca"] = st["ca"]
-                    p["dado_nivel"] = st["dado"] 
-                    p["pv"] = p["pv_max"]
-                    break
+            # LOOP DE EVOLUÇÃO: Sobe um nível por vez para somar os status corretamente
+            for _ in range(n):
+                p["nivel"] = p.get("nivel", 1) + 1
+                # Chama a função que soma o PV e CA do nível atual
+                aplicar_status_nivel(p)
+            
+            # Ajusta o XP total acumulado para o novo patamar
+            p["xp"] = (p["nivel"] - 1) * 100
             
             salvar_dados(dados)
             
             embed = discord.Embed(
                 title="🎊 NOVO NÍVEL ALCANÇADO!",
-                description=f"**{alvo.display_name}** agora é Nível **{p['nivel']}**!",
+                description=f"**{alvo.display_name}** subiu do Lvl {nivel_antigo} para o **Lvl {p['nivel']}**!",
                 color=0x00ff00
             )
-            embed.add_field(name="🎲 Novo Dado", value=p.get('dado_nivel', '1d6'), inline=True)
-            embed.add_field(name="⛺ Bônus", value=f"+{n} Carga de Descanso", inline=True)
+            embed.add_field(name="🎲 Dado Atual", value=p.get('dado_nivel', '1d6'), inline=True)
+            embed.add_field(name="🛡️ CA Total", value=str(p.get('ca', 0)), inline=True)
             embed.add_field(name="❤️ Vida Máxima", value=f"{p['pv_max']} PV", inline=False)
-            embed.set_footer(text="A Lulu está orgulhosa do seu progresso!")
+            embed.set_footer(text="Status somados com sucesso!")
             
             await ctx.send(embed=embed)
         else:

@@ -67,31 +67,50 @@ def aplicar_dano_complexo(p_data, dano_bruto):
             
     return log, False
 
+def aplicar_status_nivel(p):
+    """Soma PV e CA ao personagem toda vez que ele sobe de nível."""
+    import constantes
+    nivel = p.get("nivel", 1)
+    
+    for faixa, st in constantes.TABELA_NIVEIS.items():
+        f_inicio, f_fim = map(int, faixa.split('-'))
+        if f_inicio <= nivel <= f_fim:
+            # PV: Soma o valor da tabela ao PV Máximo atual
+            p["pv_max"] = p.get("pv_max", 0) + st["pv"]
+            
+            # CA (Escudo): Soma o valor da tabela ao CA atual
+            p["ca"] = p.get("ca", 0) + st["ca"]
+            
+            # DADO: Este apenas substitui pelo dado da faixa atual
+            p["dado_nivel"] = st["dado"]
+            
+            # CURA: Ao subir de nível, ele recupera o que ganhou (ou cura tudo, você escolhe)
+            # Para curar tudo: p["pv"] = p["pv_max"]
+            # Para curar apenas o que ganhou: p["pv"] += st["pv"]
+            p["pv"] = p["pv_max"] 
+            return True
+    return False
+
 def processar_xp_acumulado(p, quantidade_ganha):
+    # XP AGORA É ACUMULATIVO TOTAL (Não subtrai mais)
     p["xp"] = p.get("xp", 0) + quantidade_ganha
     upou_pelo_menos_uma_vez = False
     
     while True:
         nivel_atual = p.get("nivel", 1)
-        if nivel_atual >= 20: 
-            break
+        if nivel_atual >= 20: break
             
+        # Meta para o PRÓXIMO nível (Ex: Nível 1 precisa de 100 para ir pro 2)
         xp_necessario = nivel_atual * 100 
         
+        # Se o XP total acumulado atingiu a meta do próximo nível
         if p["xp"] >= xp_necessario:
-            p["xp"] -= xp_necessario
             p["nivel"] += 1
             p["descansos"] = p.get("descansos", 0) + 1
             upou_pelo_menos_uma_vez = True
             
-            for faixa, st in constantes.TABELA_NIVEIS.items():
-                f_inicio, f_fim = map(int, faixa.split('-'))
-                if f_inicio <= p["nivel"] <= f_fim:
-                    p["pv_max"] = st["pv"]
-                    p["ca"] = st["ca"]
-                    p["dado_nivel"] = st["dado"]
-                    p["pv"] = p["pv_max"] 
-                    break
+            # Força a atualização dos status (PV, CA, DADO)
+            aplicar_status_nivel(p)
         else:
             break
             

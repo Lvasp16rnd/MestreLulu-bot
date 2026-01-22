@@ -20,23 +20,27 @@ class Players(commands.Cog):
         sorte = p["nivel"] + (at.get("presenca", 0) * 2)
         descansos = p.get("descansos", 0)
 
+        # --- LÓGICA DE XP DINÂMICA ---
+        xp_atual = p.get("xp", 0)
+        xp_max = p["nivel"] * 100  # A meta é sempre nível atual * 100
+        
+        # Cálculo da barra evitando divisão por zero e garantindo que não quebre se XP > XP_MAX
+        porcentagem = min(xp_atual / xp_max, 1.0) 
+        barra = "◈" * int(porcentagem * 10) + "◇" * (10 - int(porcentagem * 10))
+
         embed = discord.Embed(title=f"📜 Ficha de {p['nome']}", color=0x71368a)
         embed.add_field(name="🧬 Raça/Nível", value=f"{p['raca']} Lvl {p['nivel']}", inline=True)
         
-        embed.add_field(name="❤️ PV | 🛡️ Escudo | ⛺", value=f"{p['pv']} | {p['ca']} | ({descansos})", inline=True)
+        # Exibindo PV atual / PV Max
+        embed.add_field(name="❤️ PV | 🛡️ CA | ⛺", value=f"{p['pv']}/{p['pv_max']} | {p['ca']} | ({descansos})", inline=True)
         embed.add_field(name="🍀 Sorte", value=str(sorte), inline=True)
 
-        xp_atual = p.get("xp", 0)
-        xp_max = p.get("xp_max", 500)
-        barra = "◈" * int((xp_atual/xp_max)*10) + "◇" * (10 - int((xp_atual/xp_max)*10))
-
         embed.add_field(name=f"📊 XP ({xp_atual}/{xp_max})", value=f"`{barra}`", inline=False)
-
+       
         status = "💀 **AZARADO**" if p.get("azarado") else "✨ Normal"
         embed.add_field(name="Status", value=status, inline=True)
         
-        dado_atual = calcular_dano_nivel(p["nivel"])
-        embed.add_field(name="🎲 Dado Atual", value=dado_atual, inline=True)
+        embed.add_field(name="🎲 Dado Atual", value=p.get("dado_nivel", "1d6"), inline=True)
         
         attrs = f"FOR: {at['forca']} | AGI: {at['agilidade']} | INT: {at['intelecto']}\nPRE: {at['presenca']} | CAR: {at['carisma']}"
         embed.add_field(name="📊 Atributos", value=f"```\n{attrs}\n```", inline=False)
