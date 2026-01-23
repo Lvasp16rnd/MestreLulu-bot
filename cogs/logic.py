@@ -126,3 +126,133 @@ def usar_pocao_sorte(usuario_data):
         item = random.choice(constantes.RECOMPENSAS_SORTE)
         usuario_data.setdefault("inventario", []).append(item)
         return f"🎁 O destino deu: **{item}**.", item
+
+
+# ============================================================
+# SISTEMA DE TESTE DE ATRIBUTOS
+# ============================================================
+
+# Mapeamento de nomes de atributos (aceita variações)
+ATRIBUTOS_VALIDOS = {
+    "força": "forca",
+    "forca": "forca",
+    "for": "forca",
+    "agilidade": "agilidade",
+    "agi": "agilidade",
+    "intelecto": "intelecto",
+    "int": "intelecto",
+    "presença": "presenca",
+    "presenca": "presenca",
+    "pre": "presenca",
+    "carisma": "carisma",
+    "car": "carisma"
+}
+
+# Lista para autocomplete (nomes bonitos)
+ATRIBUTOS_DISPLAY = ["Força", "Agilidade", "Intelecto", "Presença", "Carisma"]
+
+
+def normalizar_atributo(nome: str) -> str | None:
+    """
+    Converte variações do nome do atributo para o formato interno.
+    Retorna None se o atributo não for válido.
+    """
+    return ATRIBUTOS_VALIDOS.get(nome.lower().strip())
+
+
+def calcular_formula_atributo(valor_atributo: int) -> tuple[int, str]:
+    """
+    Retorna a quantidade de dados e o modo de seleção baseado no valor do atributo.
+    
+    Regras:
+    - 0: 2d20, pega o MENOR (desvantagem)
+    - 1: 1d20 normal
+    - 2: 2d20, pega o MAIOR (vantagem)
+    - 3+: 3d20, pega o MAIOR (super vantagem)
+    
+    Returns:
+        tuple: (quantidade_dados, modo) onde modo é "menor", "normal" ou "maior"
+    """
+    if valor_atributo <= 0:
+        return 2, "menor"
+    elif valor_atributo == 1:
+        return 1, "normal"
+    elif valor_atributo == 2:
+        return 2, "maior"
+    else:  # 3 ou mais
+        return 3, "maior"
+
+
+def rolar_teste_atributo(valor_atributo: int, modificador: int = 0) -> dict:
+    """
+    Executa um teste baseado no valor do atributo.
+    
+    Args:
+        valor_atributo: O valor do atributo (0, 1, 2, 3+)
+        modificador: Bônus ou penalidade adicional ao resultado
+    
+    Returns:
+        dict com:
+            - resultado: valor final após seleção
+            - dados: lista de todos os dados rolados
+            - modo: "menor", "normal" ou "maior"
+            - quantidade: quantos dados foram rolados
+            - total: resultado + modificador
+            - modificador: o modificador aplicado
+    """
+    quantidade, modo = calcular_formula_atributo(valor_atributo)
+    
+    # Rola os dados
+    dados = [random.randint(1, 20) for _ in range(quantidade)]
+    
+    # Seleciona o resultado baseado no modo
+    if modo == "menor":
+        resultado = min(dados)
+    elif modo == "maior":
+        resultado = max(dados)
+    else:  # normal
+        resultado = dados[0]
+    
+    total = resultado + modificador
+    
+    return {
+        "resultado": resultado,
+        "dados": dados,
+        "modo": modo,
+        "quantidade": quantidade,
+        "total": total,
+        "modificador": modificador
+    }
+
+
+def formatar_resultado_teste(nome_atributo: str, valor_atributo: int, resultado: dict) -> str:
+    """
+    Formata o resultado do teste para exibição.
+    
+    Returns:
+        String formatada para embed do Discord
+    """
+    dados_str = ", ".join(map(str, resultado["dados"]))
+    
+    # Emoji baseado no modo
+    if resultado["modo"] == "menor":
+        emoji_modo = "📉"
+        descricao_modo = "Desvantagem (menor valor)"
+    elif resultado["modo"] == "maior":
+        emoji_modo = "📈"
+        descricao_modo = "Vantagem (maior valor)" if resultado["quantidade"] == 2 else "Super Vantagem (maior valor)"
+    else:
+        emoji_modo = "🎲"
+        descricao_modo = "Rolagem normal"
+    
+    # Monta a string
+    texto = f"{emoji_modo} **Modo:** {descricao_modo}\n"
+    texto += f"🎲 **Dados rolados:** `[{dados_str}]`\n"
+    texto += f"✨ **Resultado selecionado:** `{resultado['resultado']}`"
+    
+    if resultado["modificador"] != 0:
+        sinal = "+" if resultado["modificador"] > 0 else ""
+        texto += f"\n🔧 **Modificador:** `{sinal}{resultado['modificador']}`"
+        texto += f"\n📊 **Total Final:** `{resultado['total']}`"
+    
+    return texto

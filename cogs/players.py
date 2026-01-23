@@ -2,7 +2,15 @@ import discord
 from discord.ext import commands
 import constantes
 from database import carregar_dados, salvar_dados
-from cogs.logic import calcular_dano_nivel, rolar_dado, usar_pocao_sorte
+from cogs.logic import (
+    calcular_dano_nivel, 
+    rolar_dado, 
+    usar_pocao_sorte,
+    ATRIBUTOS_DISPLAY,
+    normalizar_atributo,
+    rolar_teste_atributo,
+    formatar_resultado_teste
+)
 import random
 import datetime
 
@@ -320,6 +328,106 @@ class Players(commands.Cog):
         except Exception as e:
             print(f"Erro no dado: {e}")
             await ctx.send("🐾 **Lulu:** Formato inválido! Use `2d6` ou `3#d12`.")
+
+    # ============================================================
+    # SISTEMA DE TESTE DE ATRIBUTOS
+    # ============================================================
+    
+    async def atributo_autocomplete(
+        self, interaction: discord.Interaction, current: str
+    ) -> list[discord.app_commands.Choice[str]]:
+        """Autocomplete para os atributos disponíveis."""
+        opcoes = [
+            discord.app_commands.Choice(name=attr, value=attr)
+            for attr in ATRIBUTOS_DISPLAY
+            if current.lower() in attr.lower()
+        ]
+        return opcoes[:25]
+
+    @commands.hybrid_command(name="testar", description="Faz um teste de atributo (FOR, AGI, INT, PRE, CAR)")
+    @discord.app_commands.describe(
+        atributo="O atributo a ser testado",
+        modificador="Bônus ou penalidade adicional (opcional)"
+    )
+    @discord.app_commands.autocomplete(atributo=atributo_autocomplete)
+    async def testar(self, ctx, atributo: str, modificador: int = 0):
+        """
+        Realiza um teste de atributo seguindo as regras:
+        - Atributo 0: Rola 2d20 e pega o MENOR (desvantagem)
+        - Atributo 1: Rola 1d20 normal
+        - Atributo 2: Rola 2d20 e pega o MAIOR (vantagem)
+        - Atributo 3+: Rola 3d20 e pega o MAIOR (super vantagem)
+        """
+        user_id = str(ctx.author.id)
+        dados = carregar_dados()
+        p = dados["usuarios"].get(user_id)
+        
+        if not p:
+            return await ctx.send("🐾 **Lulu:** Você não tem uma ficha. Use `/registrar` primeiro.")
+        
+        # Normaliza o nome do atributo
+        attr_interno = normalizar_atributo(atributo)
+        if not attr_interno:
+            atributos_validos = ", ".join(ATRIBUTOS_DISPLAY)
+            return await ctx.send(
+                f"🐾 **Lulu:** Atributo inválido! Use um destes: `{atributos_validos}`"
+            )
+        
+        # Obtém o valor do atributo do jogador
+        valor_atributo = p["atributos"].get(attr_interno, 0)
+        
+        # Aplica modificador de azar se existir
+        mod_total = modificador
+        azar_msg = ""
+        if p.get("azarado"):
+            mod_total -= 5
+            azar_msg = "⚠️ **O Azar te atingiu! (-5 no resultado)**\n\n"
+            p["azarado"] = False
+            salvar_dados(dados)
+        
+        # Realiza o teste
+        resultado = rolar_teste_atributo(valor_atributo, mod_total)
+        
+        # Monta o embed
+        nome_bonito = atributo.capitalize()
+        embed = discord.Embed(
+            title=f"🎯 Teste de {nome_bonito}",
+            color=self._cor_por_resultado(resultado["resultado"])
+        )
+        
+        embed.add_field(
+            name=f"📊 {nome_bonito}",
+            value=f"Valor: **{valor_atributo}**",
+            inline=True
+        )
+        
+        embed.add_field(
+            name="🎲 Fórmula",
+            value=f"`{resultado['quantidade']}#d20`" if resultado["quantidade"] > 1 else "`1d20`",
+            inline=True
+        )
+        
+        # Descrição com o resultado formatado
+        texto_resultado = formatar_resultado_teste(nome_bonito, valor_atributo, resultado)
+        embed.description = f"{azar_msg}{texto_resultado}"
+        
+        # Footer com dica
+        embed.set_footer(text=f"Teste realizado por {p['nome']} | Use /testar <atributo> [modificador]")
+        
+        await ctx.send(embed=embed)
+
+    def _cor_por_resultado(self, valor: int) -> discord.Color:
+        """Retorna uma cor baseada no resultado do dado."""
+        if valor == 20:
+            return discord.Color.gold()  # Crítico!
+        elif valor >= 15:
+            return discord.Color.green()  # Bom
+        elif valor >= 10:
+            return discord.Color.blue()  # Médio
+        elif valor > 1:
+            return discord.Color.orange()  # Ruim
+        else:
+            return discord.Color.red()  # Falha crítica!
 
 async def setup(bot):
     await bot.add_cog(Players(bot))
