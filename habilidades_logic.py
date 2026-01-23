@@ -347,7 +347,7 @@ def processar_uso_habilidade(p, dados_hab, mod_azar):
     }
     
     if sucesso:
-        valor_base = rolar_dado(formato_dado)
+        valor_base, _, _ = rolar_dado(formato_dado)
         valor_total = valor_base + valor_atributo + dano_extra
         
         if dados_hab.get("tipo") == "cura":
