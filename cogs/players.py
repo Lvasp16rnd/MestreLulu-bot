@@ -20,19 +20,15 @@ class Players(commands.Cog):
         sorte = p["nivel"] + (at.get("presenca", 0) * 2)
         descansos = p.get("descansos", 0)
 
-        # --- NOVA LÓGICA DE BARRA DE XP (RELATIVA) ---
         xp_total = p.get("xp", 0)
         nivel_atual = p["nivel"]
         
-        xp_piso = (nivel_atual - 1) * 100 # O XP que ele precisou para chegar neste nível
-        xp_teto = nivel_atual * 100     # O XP necessário para o PRÓXIMO nível
+        xp_piso = (nivel_atual - 1) * 100 
+        xp_teto = nivel_atual * 100     
         
-        # Quanto ele já ganhou dentro desse nível específico
         xp_relativo = xp_total - xp_piso
-        # Quanto falta ganhar no total dentro deste nível (sempre 100 no seu sistema)
         alcance_nivel = xp_teto - xp_piso 
 
-        # Calcula o percentual baseado apenas no que falta para o próximo lvl
         percentual = min(max(xp_relativo / alcance_nivel, 0), 1.0) if alcance_nivel > 0 else 0
         
         num_quadrados = int(percentual * 10)
@@ -44,13 +40,12 @@ class Players(commands.Cog):
         embed.add_field(name="❤️ PV | 🛡️ Escudo | ⛺", value=f"{p['pv']}/{p['pv_max']} | {p['ca']} | ({descansos})", inline=True)
         embed.add_field(name="🍀 Sorte", value=str(sorte), inline=True)
 
-        # Mostra o XP Total/XP Máximo, mas a barra reflete o progresso do nível atual
         embed.add_field(name=f"📊 XP ({xp_total}/{xp_teto})", value=f"`{barra}`", inline=False)
 
         status = "💀 **AZARADO**" if p.get("azarado") else "✨ Normal"
         embed.add_field(name="Status", value=status, inline=True)
         
-        from cogs.logic import calcular_dano_nivel # Garante que a função seja lida
+        from cogs.logic import calcular_dano_nivel 
         dado_atual = calcular_dano_nivel(nivel_atual)
         embed.add_field(name="🎲 Dado Atual", value=dado_atual, inline=True)
         
@@ -165,26 +160,129 @@ class Players(commands.Cog):
         inv = ", ".join(p["inventario"]) if p["inventario"] else "Vazio"
         await ctx.send(embed=discord.Embed(title=f"🎒 {ctx.author.name}", description=f"**Itens:** {inv}\n**Saldo:** {p['dinheiro']} Krugs"))
 
+    ITENS_BEBIVEIS = [
+        "Poção da Sorte",
+        "Poção do Tempo Velado", 
+        "Poção do Amor",
+        "Poção do Esquecimento",
+        "Poção da Raiva",
+        "Poção da Verdade",
+        "Poção do Quase Milagre",
+        "Frascos de Alquimia Errante",
+        "Sangue do Cupido"
+    ]
+
+    async def beber_autocomplete(
+        self, interaction: discord.Interaction, current: str
+    ) -> list[discord.app_commands.Choice[str]]:
+        """Autocomplete que mostra os itens bebíveis do inventário do jogador."""
+        user_id = str(interaction.user.id)
+        dados = carregar_dados()
+        p = dados["usuarios"].get(user_id)
+        
+        if not p:
+            return []
+        
+        inventario = p.get("inventario", [])
+        
+        itens_disponiveis = [
+            item for item in inventario 
+            if item in self.ITENS_BEBIVEIS and current.lower() in item.lower()
+        ]
+        
+        itens_unicos = list(dict.fromkeys(itens_disponiveis))
+        
+        opcoes = [
+            discord.app_commands.Choice(name=item, value=item)
+            for item in itens_unicos
+        ]
+        
+        return opcoes[:25]
+
     @commands.hybrid_command(name="beber", description="Usa um item do inventário")
-    async def beber(self,ctx, *, item: str):
+    @discord.app_commands.autocomplete(item=beber_autocomplete)
+    async def beber(self, ctx, *, item: str):
         user_id = str(ctx.author.id)
         dados = carregar_dados()
         p = dados["usuarios"].get(user_id)
+        
+        if not p:
+            return await ctx.send("🐾 **Lulu:** Sem alma, sem poções.")
+        
         item_real = next((i for i in p["inventario"] if i.lower() == item.lower()), None)
-        if not item_real: return await ctx.send("🐾 **Lulu:** Você não tem isso.")
+        if not item_real: 
+            return await ctx.send("🐾 **Lulu:** Você não tem isso.")
+
+        if item_real not in self.ITENS_BEBIVEIS:
+            return await ctx.send("🐾 **Lulu:** Isso não se bebe.")
+
+        p["inventario"].remove(item_real)
+        pv_max = p.get("pv_max", 30)
 
         if item_real == "Poção da Sorte":
-            p["inventario"].remove(item_real)
             res, _ = usar_pocao_sorte(p)
             salvar_dados(dados)
-            await ctx.send(res)
+            return await ctx.send(res)
+
         elif item_real == "Poção do Tempo Velado":
-            p["inventario"].remove(item_real)
-            cura = random.randint(5, 15)
-            p["pv"] += cura
+            cura = random.randint(1, 10)
+            p["pv"] = min(pv_max, p["pv"] + cura)
             salvar_dados(dados)
-            await ctx.send(f"⏳ Tempo manipulado! Recuperou {cura} PV.")
-        else: await ctx.send("🐾 **Lulu:** Isso não se bebe.")
+            return await ctx.send(f"⏳ **Tempo manipulado!** Recuperou **+{cura} PV**. ❤️ Vida: {p['pv']}/{pv_max}")
+
+        elif item_real == "Poção do Quase Milagre":
+            cura = random.randint(1, 20)
+            if cura == 1:
+                cura = cura // 2  
+                msg = f"💔 **Quase milagre... quase.** A poção falhou parcialmente. Recuperou apenas **+{cura} PV**."
+            else:
+                msg = f"✨ **Milagre!** Recuperou **+{cura} PV**."
+            p["pv"] = min(pv_max, p["pv"] + cura)
+            salvar_dados(dados)
+            return await ctx.send(f"{msg} ❤️ Vida: {p['pv']}/{pv_max}")
+
+        elif item_real == "Frascos de Alquimia Errante":
+            cura = random.randint(1, 4)
+            p["pv"] = min(pv_max, p["pv"] + cura)
+            
+            efeitos_colaterais = [
+                "Sua pele ficou levemente azulada por alguns minutos.",
+                "Você sentiu um gosto de metal na boca.",
+                "Seus olhos brilharam brevemente.",
+                "Um leve tremor percorreu seu corpo.",
+                "Você soltou uma risada involuntária.",
+                "Seu cabelo ficou em pé por um instante."
+            ]
+            efeito = random.choice(efeitos_colaterais)
+            salvar_dados(dados)
+            return await ctx.send(f"🧪 **Alquimia Errante!** Recuperou **+{cura} PV**. ❤️ Vida: {p['pv']}/{pv_max}\n*Efeito colateral: {efeito}*")
+
+        elif item_real == "Sangue do Cupido":
+            p["buff_dt"] = p.get("buff_dt", 0) - 2
+            salvar_dados(dados)
+            return await ctx.send("🩸 **Sangue do Cupido consumido!** Seu próximo teste terá **-2 na DT**.")
+
+        elif item_real == "Poção do Amor":
+            salvar_dados(dados)
+            return await ctx.send("💖 **Poção do Amor bebida!** Por um dia, você emana uma aura de fascínio irresistível. Use com sabedoria (ou não).")
+
+        elif item_real == "Poção do Esquecimento":
+            salvar_dados(dados)
+            return await ctx.send("☁️ **Poção do Esquecimento bebida!** Você pode apagar uma lembrança específica de alguém (ou sua). Converse com o Mestre.")
+
+        elif item_real == "Poção da Raiva":
+            salvar_dados(dados)
+            return await ctx.send("💢 **Poção da Raiva bebida!** Por um dia, você sente uma fúria ardente. +2 de dano em ataques corpo-a-corpo, mas -2 em testes de Carisma.")
+
+        elif item_real == "Poção da Verdade":
+            salvar_dados(dados)
+            return await ctx.send("👁️ **Poção da Verdade bebida!** Quem beber não conseguirá mentir. Ideal para interrogatórios... ou confissões.")
+
+        # Fallback (não deve chegar aqui)
+        else:
+            p["inventario"].append(item_real)
+            salvar_dados(dados)
+            return await ctx.send("🐾 **Lulu:** Algo deu errado ao consumir isso.")
 
     @commands.hybrid_command(name="historico", description="Mostra as últimas missões")
     async def historico(self, ctx):
