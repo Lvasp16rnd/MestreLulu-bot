@@ -139,9 +139,9 @@ class Habilidades(commands.Cog):
                     # Limita a cura ao PV Máximo estático da ficha
                     pv_max = p.get("pv_max", 30)
                     p["pv"] = min(pv_max, p["pv"] + res["cura"])
-                    embed.description = f"{azar_msg}✅ **Sucesso!**\n{info_calculo} (DT: {res['dt_applied']})\n\n*{dados_hab['descricao']}*\n\n💖 **Cura:** +{res['cura']} PV | ❤️ **Vida:** {p['pv']}/{pv_max}"
+                    embed.description = f"{azar_msg}✅ **Sucesso!**\n{info_calculo} (DT: {res['dt_aplicada']})\n\n*{dados_hab['descricao']}*\n\n💖 **Cura:** +{res['cura']} PV | ❤️ **Vida:** {p['pv']}/{pv_max}"
                 else:
-                    embed.description = f"{azar_msg}✅ **Sucesso!**\n{info_calculo} (DT: {res['dt_applied']})\n\n*{dados_hab['descricao']}*\n\n⚔️ **Dano:** {res['dano']}"
+                    embed.description = f"{azar_msg}✅ **Sucesso!**\n{info_calculo} (DT: {res['dt_aplicada']})\n\n*{dados_hab['descricao']}*\n\n⚔️ **Dano:** {res['dano']}"
             
             # 6. RESULTADOS (Falha)
             else:
@@ -156,7 +156,7 @@ class Habilidades(commands.Cog):
                     dano_falha_texto = f"\n💔 **Recuo:** -{perda} PV"
 
                 embed.color = discord.Color.red()
-                embed.description = f"{azar_msg}❌ **Falha!**\n{info_calculo} (DT: {res['dt_applied']})\n**Dado de Falha (d4):** {d4}\n\n**O que aconteceu:** {consequencia}{dano_falha_texto}"
+                embed.description = f"{azar_msg}❌ **Falha!**\n{info_calculo} (DT: {res['dt_aplicada']})\n**Dado de Falha (d4):** {d4}\n\n**O que aconteceu:** {consequencia}{dano_falha_texto}"
 
             if res["logs"]:
                 embed.add_field(name="🎒 Itens Utilizados", value="\n".join([f"• {log}" for log in res["logs"]]), inline=False)
