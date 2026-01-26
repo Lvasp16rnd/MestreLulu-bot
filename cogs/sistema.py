@@ -3,6 +3,7 @@ from discord.ext import commands
 from database import carregar_dados, salvar_dados
 import constantes
 from views import LojaView, SelecaoRacaView, DistribuiPontosView
+from utils import eh_admin
 
 class Sistema(commands.Cog):
     def __init__(self, bot):
@@ -86,21 +87,33 @@ class Sistema(commands.Cog):
             color=0x71368a
         )
         
-        aventura = (
+        inicio = (
+            "**!registrar** - Cria sua ficha de personagem.\n"
             "**!ficha** - Veja seu status, atributos e Krugs.\n"
-            "**!menu** - Abre o painel interativo (Ficha, Inv, Loja).\n"
+            "**!menu** - Abre o painel interativo (Ficha, Inv, Loja)."
+        )
+        embed.add_field(name="📋 Primeiros Passos", value=inicio, inline=False)
+        
+        aventura = (
             "**!usar <nome>** - Usa uma habilidade (Bônus de itens aplicados automaticamente).\n"
+            "**!testar <atributo>** - Faz um teste de atributo (FOR, AGI, INT, PRE, CAR).\n"
             "**!descansar** - Recupera PV usando uma carga de acampamento (⛺).\n"
-            "**!d <expressão>** - Rolagem de dados (ex: `!d 1d20+2`)."
+            "**!dado <expressão>** - Rolagem de dados (ex: `!dado 2d6+3` ou `!r 1d20`)."
         )
         embed.add_field(name="⚔️ Ação e Aventura", value=aventura, inline=False)
 
         economia = (
             "**!trabalhar** - Realize tarefas para ganhar K$ (1h de cooldown).\n"
             "**!loja** - Visite as alas do mercado para comprar equipamentos.\n"
-            "**!inventario** - Veja o que você carrega na mochila."
+            "**!inventario** - Veja o que você carrega na mochila.\n"
+            "**!beber <item>** - Usa uma poção ou item bebível do inventário."
         )
         embed.add_field(name="💰 Economia e Itens", value=economia, inline=False)
+        
+        social = (
+            "**!historico** - Mostra as últimas missões concluídas."
+        )
+        embed.add_field(name="📖 Social", value=social, inline=False)
 
         regras = (
             "• **Tags de Itens:** Ter itens como *Flechas de Sol* ou *Frasco de Luz* no inventário dá bônus automáticos ao usar certas habilidades.\n"
@@ -109,14 +122,27 @@ class Sistema(commands.Cog):
         )
         embed.add_field(name="📜 Regras e Segredos", value=regras, inline=False)
 
-        if ctx.author.guild_permissions.administrator:
+        if eh_admin(ctx):
             mestre = (
-                "**!dar_xp @usuario <qtd>** - Dá XP (processa níveis e sobras automaticamente).\n"
+                "**!dar_xp @usuario <qtd>** - Dá XP (processa níveis automaticamente).\n"
                 "**!upar @usuario [n]** - Força o aumento de nível imediato.\n"
-                "**!registrar @usuario** - Inicia o processo de criação de ficha.\n"
-                "**!lulu_azar @usuario** - Amaldiçoa com -5 no próximo dado."
+                "**!setar @usuario <atributo> <valor>** - Define atributos, nível ou XP.\n"
+                "**!lulu_azar @usuario** - Amaldiçoa com -5 no próximo dado.\n"
+                "**!lulu_reset [qtd]** - Dá cargas de descanso para todos."
             )
             embed.add_field(name="👑 Comandos de Mestre", value=mestre, inline=False)
+            
+            missoes = (
+                "**!concluir_missao** - Conclui uma missão e distribui recompensas.\n"
+                "**!sorteio_missao** - Sorteia uma equipe diversificada para missão.\n"
+                "**!evento <nome> <DT> <atributo> <dano>** - Cria um desafio para todos."
+            )
+            embed.add_field(name="🗺️ Gestão de Missões", value=missoes, inline=False)
+            
+            combate = (
+                "**!batalha @p1 @p2** - Inicia um duelo entre dois jogadores."
+            )
+            embed.add_field(name="⚔️ Combate", value=combate, inline=False)
 
         embed.set_footer(text="Mestre Lulu: 'A sorte favorece os audazes... e quem me trouxer petiscos.'")
         
