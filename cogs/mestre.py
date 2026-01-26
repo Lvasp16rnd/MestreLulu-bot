@@ -6,7 +6,7 @@ from cogs.logic import aplicar_dano_complexo, aplicar_status_nivel, processar_xp
 from mecanicas import adicionar_xp
 import random
 
-from main import eh_admin
+from utils import eh_admin
 
 class Mestre(commands.Cog):    
     def __init__(self, bot):
@@ -116,8 +116,10 @@ class Mestre(commands.Cog):
             await ctx.send(f"✨ **{alvo.display_name}** ganhou **{quantidade} XP**! (Total: {p['xp']}/{p['xp_max']})")
 
     @commands.hybrid_command(name="lulu_reset", description="Dá cargas de descanso para todos (ADMs apenas)")
-    @commands.has_permissions(administrator=True) 
     async def lulu_reset(self, ctx, quantidade: int = 1):
+        if not eh_admin(ctx): 
+            return await ctx.send("🐾 **Lulu:** Você não tem autoridade para isso!")
+        
         dados = carregar_dados()
         
         for user_id in dados["usuarios"]:
@@ -128,8 +130,10 @@ class Mestre(commands.Cog):
         await ctx.send(f"🐾 **Lulu:** Recuperei o fôlego de todos! Adicionei **{quantidade}** carga(s) de descanso para o grupo.")
 
     @commands.hybrid_command(name="lulu_azar", description="Amaldiçoa um jogador com azar (-5 na próxima rolagem) (ADMs apenas)")
-    @commands.has_permissions(administrator=True)
     async def lulu_azar(self, ctx, alvo: discord.Member):
+        if not eh_admin(ctx): 
+            return await ctx.send("🐾 **Lulu:** Você não tem autoridade para isso!")
+        
         dados = carregar_dados()
         p = dados["usuarios"].get(str(alvo.id))
         if p:
@@ -138,7 +142,6 @@ class Mestre(commands.Cog):
             await ctx.send(f"💀 **Lulu rosnou para {alvo.name}!** A nuvem do azar agora te persegue (-5 na próxima rolagem).")
 
     @commands.hybrid_command(name="setar", description="Define atributos, nível ou XP (ADMs apenas)")
-    @commands.has_permissions(administrator=True)
     async def setar(self, ctx, alvo: discord.Member, at: str, v: int):
         if not eh_admin(ctx): 
             return await ctx.send("🐾 **Lulu:** Você não tem autoridade para isso!")
@@ -195,8 +198,10 @@ class Mestre(commands.Cog):
             await ctx.send("🐾 **Lulu:** Usuário não encontrado.")
 
     @commands.hybrid_command(name="concluir_missao", description="Conclui uma missão e distribui recompensas (ADMs apenas)")
-    @commands.has_permissions(administrator=True)
     async def concluir_missao(self, ctx):
+        if not eh_admin(ctx): 
+            return await ctx.send("🐾 **Lulu:** Você não tem autoridade para isso!")
+        
         def check(m): return m.author == ctx.author and m.channel == ctx.channel
         try:
             await ctx.send("📝 Nome da Missão?")
@@ -243,7 +248,7 @@ class Mestre(commands.Cog):
         Cria um desafio para TODOS os jogadores com ficha.
         Ex: !evento "Ponte Caindo" 15 agilidade 10
         """
-        if not ctx.author.guild_permissions.administrator:
+        if not eh_admin(ctx):
             return await ctx.send("🐾 **Lulu:** Apenas mestres podem invocar eventos catastróficos!")
         
         dados = carregar_dados()

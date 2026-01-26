@@ -13,16 +13,12 @@ from views import MenuRPG
 
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
-ADMINS_LIST = [int(id) for id in os.getenv("ADMINS", "").split(",") if id]
 
 # --- CONFIGURAÇÃO ---
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 usuarios_em_menu = set()
 cooldown_xp = {}
-
-def eh_admin(ctx):
-    return ctx.author.id in ADMINS_LIST or ctx.author.guild_permissions.administrator
 
 # --- CARREGAMENTO DE COGS ---
 async def load_extensions():

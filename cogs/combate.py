@@ -3,7 +3,7 @@ from discord.ext import commands
 import random
 from database import carregar_dados, salvar_dados
 from cogs.logic import rolar_dado
-from main import eh_admin
+from utils import eh_admin
 
 class BatalhaView(discord.ui.View):
     def __init__(self, mestre, atacante, defensor, dados_globais):
