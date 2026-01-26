@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 import constantes
-from database import carregar_dados, salvar_dados
+from database import carregar_dados, salvar_dados, carregar_usuario, salvar_usuario
 from cogs.logic import (
     calcular_dano_nivel, 
     rolar_dado, 
@@ -20,48 +20,51 @@ class Players(commands.Cog):
 
     @commands.hybrid_command(name="ficha", description="Mostra sua ficha de personagem")
     async def ficha(self, ctx, alvo: discord.Member = None):
-        alvo = alvo or ctx.author
-        p = carregar_dados()["usuarios"].get(str(alvo.id))
-        if not p: return await ctx.send("🐾 **Lulu:** Sem ficha.")
+        try:
+            alvo = alvo or ctx.author
+            p = carregar_usuario(str(alvo.id))
+            if not p: 
+                return await ctx.send("🐾 **Lulu:** Sem ficha.")
 
-        at = p["atributos"]
-        sorte = p["nivel"] + (at.get("presenca", 0) * 2)
-        descansos = p.get("descansos", 0)
+            at = p.get("atributos", {})
+            sorte = p.get("nivel", 1) + (at.get("presenca", 0) * 2)
+            descansos = p.get("descansos", 0)
 
-        xp_total = p.get("xp", 0)
-        nivel_atual = p["nivel"]
-        
-        xp_piso = (nivel_atual - 1) * 100 
-        xp_teto = nivel_atual * 100     
-        
-        xp_relativo = xp_total - xp_piso
-        alcance_nivel = xp_teto - xp_piso 
+            xp_total = p.get("xp", 0)
+            xp_max = p.get("xp_max", 100)
+            nivel_atual = p.get("nivel", 1)
+            
+            # Barra de XP simples
+            if xp_max > 0:
+                percentual = min(xp_total / xp_max, 1.0)
+            else:
+                percentual = 0
+            
+            num_quadrados = int(percentual * 10)
+            barra = "◈" * num_quadrados + "◇" * (10 - num_quadrados)
 
-        percentual = min(max(xp_relativo / alcance_nivel, 0), 1.0) if alcance_nivel > 0 else 0
-        
-        num_quadrados = int(percentual * 10)
-        barra = "◈" * num_quadrados + "◇" * (10 - num_quadrados)
-        # ---------------------------------------------
+            embed = discord.Embed(title=f"📜 Ficha de {p.get('nome', alvo.name)}", color=0x71368a)
+            embed.add_field(name="🧬 Raça/Nível", value=f"{p.get('raca', '???')} Lvl {nivel_atual}", inline=True)
+            embed.add_field(name="❤️ PV | 🛡️ CA | ⛺", value=f"{p.get('pv', 0)}/{p.get('pv_max', 30)} | {p.get('ca', 5)} | ({descansos})", inline=True)
+            embed.add_field(name="🍀 Sorte", value=str(sorte), inline=True)
 
-        embed = discord.Embed(title=f"📜 Ficha de {p['nome']}", color=0x71368a)
-        embed.add_field(name="🧬 Raça/Nível", value=f"{p['raca']} Lvl {nivel_atual}", inline=True)
-        embed.add_field(name="❤️ PV | 🛡️ Escudo | ⛺", value=f"{p['pv']}/{p['pv_max']} | {p['ca']} | ({descansos})", inline=True)
-        embed.add_field(name="🍀 Sorte", value=str(sorte), inline=True)
+            embed.add_field(name=f"📊 XP ({xp_total}/{xp_max})", value=f"`{barra}`", inline=False)
 
-        embed.add_field(name=f"📊 XP ({xp_total}/{xp_teto})", value=f"`{barra}`", inline=False)
-
-        status = "💀 **AZARADO**" if p.get("azarado") else "✨ Normal"
-        embed.add_field(name="Status", value=status, inline=True)
-        
-        from cogs.logic import calcular_dano_nivel 
-        dado_atual = calcular_dano_nivel(nivel_atual)
-        embed.add_field(name="🎲 Dado Atual", value=dado_atual, inline=True)
-        
-        attrs = f"FOR: {at['forca']} | AGI: {at['agilidade']} | INT: {at['intelecto']}\nPRE: {at['presenca']} | CAR: {at['carisma']}"
-        embed.add_field(name="📊 Atributos", value=f"```\n{attrs}\n```", inline=False)
-        embed.set_footer(text="Use !descansar para recuperar fôlego (consome ⛺)")
-        
-        await ctx.send(embed=embed)
+            status = "💀 **AZARADO**" if p.get("azarado") else "✨ Normal"
+            embed.add_field(name="Status", value=status, inline=True)
+            
+            from cogs.logic import calcular_dano_nivel 
+            dado_atual = calcular_dano_nivel(nivel_atual)
+            embed.add_field(name="🎲 Dado Atual", value=dado_atual, inline=True)
+            
+            attrs = f"FOR: {at.get('forca', 0)} | AGI: {at.get('agilidade', 0)} | INT: {at.get('intelecto', 0)}\nPRE: {at.get('presenca', 0)} | CAR: {at.get('carisma', 0)}"
+            embed.add_field(name="📊 Atributos", value=f"```\n{attrs}\n```", inline=False)
+            embed.set_footer(text="Use !descansar para recuperar fôlego (consome ⛺)")
+            
+            await ctx.send(embed=embed)
+        except Exception as e:
+            print(f"Erro no /ficha: {e}")
+            await ctx.send(f"🐾 **Lulu:** Erro ao carregar ficha: {e}")
 
     @commands.hybrid_command(name="descansar", description="Recupera pontos de vida usando descansos")
     async def descansar(self, ctx):
