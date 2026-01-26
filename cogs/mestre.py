@@ -21,18 +21,36 @@ class Mestre(commands.Cog):
         p = dados["usuarios"].get(str(alvo.id))
         
         if p:
-            # 1. Apenas sobe o nível e descansos (SEM MEXER NO XP)
-            p["nivel"] = p.get("nivel", 1) + n
-            p["descansos"] = p.get("descansos", 0) + n
+            nivel_atual = p.get("nivel", 1)
             
-            # 2. Atualiza os status (PV, CA, Dado) baseados no novo nível
+            # Verifica se já está no nível máximo
+            if nivel_atual >= 20:
+                return await ctx.send(f"🐾 **Lulu:** **{alvo.display_name}** já atingiu o nível máximo (20)!")
+            
+            # Limita para não passar de 20
+            novo_nivel = min(20, nivel_atual + n)
+            niveis_ganhos = novo_nivel - nivel_atual
+            
+            p["nivel"] = novo_nivel
+            p["descansos"] = p.get("descansos", 0) + niveis_ganhos
+            
             aplicar_status_nivel(p)
+            
+            from cogs.logic import calcular_xp_necessario
+            if "xp_max" not in p:
+                p["xp_max"] = 100  
+            for _ in range(niveis_ganhos):
+                p["xp_max"] = calcular_xp_necessario(p["nivel"], p["xp_max"])
+            
+            # No nível 20, XP fica em 0 (não precisa mais)
+            if p["nivel"] >= 20:
+                p["xp"] = 0
+                p["xp_max"] = 0
             
             salvar_dados(dados)
             
-            # 3. Lógica de exibição do XP na mensagem de confirmação
             xp_atual = p.get("xp", 0)
-            xp_max = p["nivel"] * 100
+            xp_max = p["xp_max"]
             
             embed = discord.Embed(
                 title="🎊 NOVO NÍVEL ALCANÇADO!",
@@ -40,7 +58,13 @@ class Mestre(commands.Cog):
                 color=0x00ff00
             )
             embed.add_field(name="🎲 Dado", value=p.get('dado_nivel', '1d6'), inline=True)
-            embed.add_field(name="✨ Experiência", value=f"{xp_atual}/{xp_max}", inline=True)
+            
+            # Exibe MAX se atingiu nível 20
+            if p["nivel"] >= 20:
+                embed.add_field(name="✨ Experiência", value="🌟 **NÍVEL MÁXIMO!**", inline=True)
+            else:
+                embed.add_field(name="✨ Experiência", value=f"{xp_atual}/{xp_max}", inline=True)
+            
             embed.add_field(name="❤️ Vida Máxima", value=f"{p['pv_max']} PV", inline=False)
             
             await ctx.send(embed=embed)
@@ -60,8 +84,18 @@ class Mestre(commands.Cog):
         if not p:
             return await ctx.send("🐾 **Lulu:** Esse alvo não tem alma registrada.")
 
+        # Verifica se já está no nível máximo
+        if p.get("nivel", 1) >= 20:
+            return await ctx.send(f"🐾 **Lulu:** **{alvo.display_name}** já é nível 20! Não precisa de mais XP.")
+
         nivel_anterior = p.get("nivel", 1)
         upou = processar_xp_acumulado(p, quantidade)
+        
+        # Se atingiu nível 20 após o XP, zera o contador
+        if p["nivel"] >= 20:
+            p["xp"] = 0
+            p["xp_max"] = 0
+        
         salvar_dados(dados)
         
         if upou:
@@ -71,10 +105,15 @@ class Mestre(commands.Cog):
                 color=0x00ff00
             )
             embed.add_field(name="❤️ Vida Atualizada", value=f"{p['pv_max']} PV", inline=True)
-            embed.add_field(name="✨ XP Atual", value=f"{p['xp']} (Próximo nível: {p['nivel'] * 100})", inline=True)
+            
+            if p["nivel"] >= 20:
+                embed.add_field(name="✨ XP Atual", value="🌟 **NÍVEL MÁXIMO!**", inline=True)
+            else:
+                embed.add_field(name="✨ XP Atual", value=f"{p['xp']}/{p['xp_max']}", inline=True)
+            
             await ctx.send(embed=embed)
         else:
-            await ctx.send(f"✨ **{alvo.display_name}** ganhou **{quantidade} XP**! (Total: {p['xp']}/{p['nivel']*100})")
+            await ctx.send(f"✨ **{alvo.display_name}** ganhou **{quantidade} XP**! (Total: {p['xp']}/{p['xp_max']})")
 
     @commands.hybrid_command(name="lulu_reset", description="Dá cargas de descanso para todos (ADMs apenas)")
     @commands.has_permissions(administrator=True) 
@@ -111,29 +150,41 @@ class Mestre(commands.Cog):
             p = dados["usuarios"][uid]
             atributo = at.lower()
 
-            # 1. Se o mestre setar o XP total
             if atributo == "xp":
                 p["xp"] = max(0, v)
-                p["nivel"] = 1 # Reseta para re-calcular o nível correto com base no novo XP
-                from cogs.logic import processar_xp_acumulado
-                processar_xp_acumulado(p, 0)
-                msg = f"✨ XP de {alvo.name} setado para {v} (Nível ajustado para {p['nivel']})."
+                # Garante xp_max existe
+                if "xp_max" not in p:
+                    p["xp_max"] = 100
+                msg = f"✨ XP de {alvo.name} setado para {v}/{p['xp_max']}."
 
-            # 2. Se o mestre setar o NÍVEL diretamente
             elif atributo == "nivel":
-                p["nivel"] = max(1, v)
-                # Ajusta o XP para o mínimo do novo nível para não ficar "XP baixo/Nível alto"
-                p["xp"] = (p["nivel"] - 1) * 100
-                from cogs.logic import aplicar_status_nivel
+                nivel_anterior = p.get("nivel", 1)
+                p["nivel"] = max(1, min(20, v))  
+                p["xp"] = 0 
+                
+                from cogs.logic import calcular_xp_necessario, aplicar_status_nivel
+                
+                # Recalcula xp_max desde o nível 1 até o nível atual
+                xp_acumulado = 100  # Base para nível 1→2
+                for n in range(1, p["nivel"]):
+                    xp_acumulado = calcular_xp_necessario(n, xp_acumulado)
+                p["xp_max"] = xp_acumulado
+                
+                # Se nível 20, não precisa mais de XP
+                if p["nivel"] >= 20:
+                    p["xp_max"] = 0
+                
                 aplicar_status_nivel(p)
-                msg = f"🧬 Nível de {alvo.name} setado para {v} (XP sincronizado para {p['xp']})."
+                
+                if p["nivel"] >= 20:
+                    msg = f"🧬 Nível de {alvo.name} setado para {p['nivel']} 🌟 **NÍVEL MÁXIMO!**"
+                else:
+                    msg = f"🧬 Nível de {alvo.name} setado para {p['nivel']} (XP: 0/{p['xp_max']})."
 
-            # 3. Se for um atributo (FOR, AGI, etc)
             elif atributo in p["atributos"]:
                 p["atributos"][atributo] = v
                 msg = f"✅ Atributo {at.upper()} de {alvo.name} setado para {v}."
 
-            # 4. Outros campos (dinheiro, descansos, etc)
             else:
                 p[atributo] = v
                 msg = f"✅ Campo {at} de {alvo.name} setado para {v}."
@@ -192,13 +243,10 @@ class Mestre(commands.Cog):
         Cria um desafio para TODOS os jogadores com ficha.
         Ex: !evento "Ponte Caindo" 15 agilidade 10
         """
-        # 1. Ajuste de Permissão: 
-        # Como eh_admin está na main, usamos o check nativo do discord ou self.bot
         if not ctx.author.guild_permissions.administrator:
             return await ctx.send("🐾 **Lulu:** Apenas mestres podem invocar eventos catastróficos!")
         
         dados = carregar_dados()
-        # Se o seu JSON tiver uma lista vazia, evitamos erro
         if not dados.get("usuarios"):
             return await ctx.send("🐾 **Lulu:** Não há ninguém no mundo para sofrer este evento.")
 
@@ -206,7 +254,6 @@ class Mestre(commands.Cog):
         at_busca = atributo.lower()
         
         for uid, p in dados["usuarios"].items():
-            # 2. Segurança de Atributo:
             attrs = p.get("atributos", {})
             bonus = attrs.get(at_busca, 0)
             
@@ -216,14 +263,11 @@ class Mestre(commands.Cog):
             if total >= dt:
                 resumo.append(f"✅ **{p['nome']}** passou! ({roll} + {bonus} = {total})")
             else:
-                # Aqui usamos a função que unificamos no logic.py
                 log_dano, morto = aplicar_dano_complexo(p, dano)
                 resumo.append(f"❌ **{p['nome']}** falhou! {log_dano}")
 
-        # Salva as alterações de PV e Fadas consumidas
         salvar_dados(dados)
         
-        # 3. Gerenciamento de Tamanho:
         embed = discord.Embed(
             title="⚠️ O Destino se Manifesta!",
             description="\n".join(resumo), 

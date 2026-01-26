@@ -72,10 +72,9 @@ class Combate(commands.Cog):
         if not p1 or not p2:
             return await ctx.send("🐾 **Lulu:** Ambos os duelistas precisam de uma ficha registrada.")
 
-        # Injetamos os IDs para a View saber quem é quem
+        # Injeta IDs para a View saber quem é quem
         p1["user_id"], p2["user_id"] = str(op1.id), str(op2.id)
 
-        # Criamos a arena (Aqui o BatalhaView é finalmente acessado!)
         view = BatalhaView(ctx.author, p1, p2, dados)
             
         embed = discord.Embed(
