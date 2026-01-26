@@ -18,7 +18,7 @@ def carregar_dados():
     try:
         with open(DB_FILE, 'r', encoding='utf-8') as f:
             dados = json.load(f)
-            # Garante que chaves novas existam mesmo em arquivos antigos
+            # As chaves novas existam mesmo em arquivos antigos
             for chave, valor in default_data.items():
                 if chave not in dados:
                     dados[chave] = valor

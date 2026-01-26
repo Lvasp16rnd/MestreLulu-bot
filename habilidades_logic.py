@@ -324,7 +324,8 @@ def processar_uso_habilidade(p, dados_hab, mod_azar):
     # --- 3. EXECUÇÃO DO TESTE ---
     dt_final = max(1, dados_hab["dt"] + mod_dt_item)
     roll = random.randint(1, 20)
-    total = max(1, roll + mod_azar)
+    # Total = dado + atributo + modificador de azar (se houver)
+    total = roll + valor_atributo + mod_azar
     sucesso = total >= dt_final
     
     # Lógica Extra do Veneno da Lua Incerta

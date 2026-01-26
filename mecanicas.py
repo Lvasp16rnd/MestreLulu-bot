@@ -12,13 +12,17 @@ def calcular_proximo_xp(nivel_atual, xp_max_atual):
 
 def adicionar_xp(p, quantidade):
     """Adiciona XP e retorna True se subir de nível."""
+    from cogs.logic import aplicar_status_nivel
+    
     p["xp"] = p.get("xp", 0) + quantidade
-    p["xp_max"] = p.get("xp_max", 500)
+    p["xp_max"] = p.get("xp_max", 100)  # Base inicial: 100 XP
     subiu = False
 
     while p["xp"] >= p["xp_max"]:
         p["xp"] -= p["xp_max"]
-        p["nivel"] += 1
+        p["nivel"] = p.get("nivel", 1) + 1
+        p["descansos"] = p.get("descansos", 0) + 1
         p["xp_max"] = calcular_proximo_xp(p["nivel"], p["xp_max"])
+        aplicar_status_nivel(p)
         subiu = True
     return subiu

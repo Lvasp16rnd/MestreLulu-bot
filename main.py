@@ -78,7 +78,7 @@ async def on_message(message):
             if contagem_valida > 0:
                 p["palavras_acumuladas"] += contagem_valida
                 
-                META_PALAVRAS = 1000 
+                META_PALAVRAS = 100000 
                 XP_RECOMPENSA = 100
 
                 if p["palavras_acumuladas"] >= META_PALAVRAS:

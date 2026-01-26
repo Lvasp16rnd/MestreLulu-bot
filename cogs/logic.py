@@ -75,31 +75,45 @@ def aplicar_status_nivel(p):
         try:
             f_inicio, f_fim = map(int, faixa.split('-'))
             if f_inicio <= nivel <= f_fim:
-                # Volta a ser estático: define o valor exato da tabela
                 p["pv_max"] = st["pv"]
                 p["ca"] = st["ca"]
                 p["dado_nivel"] = st["dado"]
-                p["pv"] = p["pv_max"] # Cura total ao subir de nível
+                p["pv"] = p["pv_max"] 
                 return True
         except:
             continue
     return False
 
+def calcular_xp_necessario(nivel_atual, xp_max_atual):
+    """
+    Calcula o XP necessário para o próximo nível usando a curva de progressão:
+    - Nível 1-5: +50% por nível
+    - Nível 6-10: +25% por nível  
+    - Nível 11-20: +15% por nível
+    """
+    if nivel_atual < 5:
+        return int(xp_max_atual * 1.5)
+    elif nivel_atual < 10:
+        return int(xp_max_atual * 1.25)
+    else:
+        return int(xp_max_atual * 1.15)
+
 def processar_xp_acumulado(p, quantidade_ganha):
-    # XP Acumulativo Total (não subtrai)
     p["xp"] = p.get("xp", 0) + quantidade_ganha
+    p["xp_max"] = p.get("xp_max", 100)
     upou = False
     
     while True:
         nivel_atual = p.get("nivel", 1)
         if nivel_atual >= 20: break
             
-        # Meta: Nível atual * 100
-        xp_necessario = nivel_atual * 100 
+        xp_necessario = p["xp_max"]
         
         if p["xp"] >= xp_necessario:
+            p["xp"] -= xp_necessario 
             p["nivel"] += 1
             p["descansos"] = p.get("descansos", 0) + 1
+            p["xp_max"] = calcular_xp_necessario(p["nivel"], p["xp_max"]) 
             aplicar_status_nivel(p) 
             upou = True
         else:
@@ -127,12 +141,6 @@ def usar_pocao_sorte(usuario_data):
         usuario_data.setdefault("inventario", []).append(item)
         return f"🎁 O destino deu: **{item}**.", item
 
-
-# ============================================================
-# SISTEMA DE TESTE DE ATRIBUTOS
-# ============================================================
-
-# Mapeamento de nomes de atributos (aceita variações)
 ATRIBUTOS_VALIDOS = {
     "força": "forca",
     "forca": "forca",
@@ -148,7 +156,6 @@ ATRIBUTOS_VALIDOS = {
     "car": "carisma"
 }
 
-# Lista para autocomplete (nomes bonitos)
 ATRIBUTOS_DISPLAY = ["Força", "Agilidade", "Intelecto", "Presença", "Carisma"]
 
 
@@ -202,10 +209,8 @@ def rolar_teste_atributo(valor_atributo: int, modificador: int = 0) -> dict:
     """
     quantidade, modo = calcular_formula_atributo(valor_atributo)
     
-    # Rola os dados
     dados = [random.randint(1, 20) for _ in range(quantidade)]
     
-    # Seleciona o resultado baseado no modo
     if modo == "menor":
         resultado = min(dados)
     elif modo == "maior":
@@ -234,7 +239,6 @@ def formatar_resultado_teste(nome_atributo: str, valor_atributo: int, resultado:
     """
     dados_str = ", ".join(map(str, resultado["dados"]))
     
-    # Emoji baseado no modo
     if resultado["modo"] == "menor":
         emoji_modo = "📉"
         descricao_modo = "Desvantagem (menor valor)"
@@ -245,7 +249,6 @@ def formatar_resultado_teste(nome_atributo: str, valor_atributo: int, resultado:
         emoji_modo = "🎲"
         descricao_modo = "Rolagem normal"
     
-    # Monta a string
     texto = f"{emoji_modo} **Modo:** {descricao_modo}\n"
     texto += f"🎲 **Dados rolados:** `[{dados_str}]`\n"
     texto += f"✨ **Resultado selecionado:** `{resultado['resultado']}`"

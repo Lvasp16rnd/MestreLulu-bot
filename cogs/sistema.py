@@ -86,7 +86,6 @@ class Sistema(commands.Cog):
             color=0x71368a
         )
         
-        # Seção de Aventura e Combate
         aventura = (
             "**!ficha** - Veja seu status, atributos e Krugs.\n"
             "**!menu** - Abre o painel interativo (Ficha, Inv, Loja).\n"
@@ -96,7 +95,6 @@ class Sistema(commands.Cog):
         )
         embed.add_field(name="⚔️ Ação e Aventura", value=aventura, inline=False)
 
-        # Seção de Economia e Progresso
         economia = (
             "**!trabalhar** - Realize tarefas para ganhar K$ (1h de cooldown).\n"
             "**!loja** - Visite as alas do mercado para comprar equipamentos.\n"
@@ -104,7 +102,6 @@ class Sistema(commands.Cog):
         )
         embed.add_field(name="💰 Economia e Itens", value=economia, inline=False)
 
-        # Seção de Regras e Itens Inteligentes
         regras = (
             "• **Tags de Itens:** Ter itens como *Flechas de Sol* ou *Frasco de Luz* no inventário dá bônus automáticos ao usar certas habilidades.\n"
             "• **Marca da Exclusão:** Troque uma *Asa de Fada* + *Olho de Dragão* no Altar (Loja Fragmentados) por defesa permanente.\n"
@@ -112,7 +109,6 @@ class Sistema(commands.Cog):
         )
         embed.add_field(name="📜 Regras e Segredos", value=regras, inline=False)
 
-        # Seção Secreta para o Mestre
         if ctx.author.guild_permissions.administrator:
             mestre = (
                 "**!dar_xp @usuario <qtd>** - Dá XP (processa níveis e sobras automaticamente).\n"

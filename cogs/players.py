@@ -328,10 +328,6 @@ class Players(commands.Cog):
         except Exception as e:
             print(f"Erro no dado: {e}")
             await ctx.send("🐾 **Lulu:** Formato inválido! Use `2d6` ou `3#d12`.")
-
-    # ============================================================
-    # SISTEMA DE TESTE DE ATRIBUTOS
-    # ============================================================
     
     async def atributo_autocomplete(
         self, interaction: discord.Interaction, current: str
@@ -365,7 +361,6 @@ class Players(commands.Cog):
         if not p:
             return await ctx.send("🐾 **Lulu:** Você não tem uma ficha. Use `/registrar` primeiro.")
         
-        # Normaliza o nome do atributo
         attr_interno = normalizar_atributo(atributo)
         if not attr_interno:
             atributos_validos = ", ".join(ATRIBUTOS_DISPLAY)
@@ -373,10 +368,8 @@ class Players(commands.Cog):
                 f"🐾 **Lulu:** Atributo inválido! Use um destes: `{atributos_validos}`"
             )
         
-        # Obtém o valor do atributo do jogador
         valor_atributo = p["atributos"].get(attr_interno, 0)
         
-        # Aplica modificador de azar se existir
         mod_total = modificador
         azar_msg = ""
         if p.get("azarado"):
@@ -385,10 +378,8 @@ class Players(commands.Cog):
             p["azarado"] = False
             salvar_dados(dados)
         
-        # Realiza o teste
         resultado = rolar_teste_atributo(valor_atributo, mod_total)
         
-        # Monta o embed
         nome_bonito = atributo.capitalize()
         embed = discord.Embed(
             title=f"🎯 Teste de {nome_bonito}",
@@ -407,11 +398,9 @@ class Players(commands.Cog):
             inline=True
         )
         
-        # Descrição com o resultado formatado
         texto_resultado = formatar_resultado_teste(nome_bonito, valor_atributo, resultado)
         embed.description = f"{azar_msg}{texto_resultado}"
         
-        # Footer com dica
         embed.set_footer(text=f"Teste realizado por {p['nome']} | Use /testar <atributo> [modificador]")
         
         await ctx.send(embed=embed)
