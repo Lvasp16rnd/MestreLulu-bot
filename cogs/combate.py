@@ -14,18 +14,20 @@ class BatalhaView(discord.ui.View):
         self.dados = dados_globais
         self.turno = atacante["user_id"]
 
-    async def processar_dano(self, interaction, atacante_obj, defensor_obj, dano_base, bonus_atk):
+    def processar_dano(self, atacante_obj, defensor_obj, dano_base, bonus_atk):
+        """Processa o dano e retorna a mensagem de log."""
         rolagem_acerto = random.randint(1, 20)
         total_ataque = rolagem_acerto + bonus_atk
-        dano_final = max(0, dano_base - defensor_obj["ca"])
+        ca_defensor = defensor_obj.get("ca", 5)
+        dano_final = max(0, dano_base - ca_defensor)
         
         if rolagem_acerto <= 2:
             atacante_obj["pv"] -= 2
             return f"🌑 **RUÍNA!** Ataque falhou e você se machucou (-2 PV)."
-        elif total_ataque < defensor_obj["ca"]:
-            return f"🛡️ **DEFESA!** Bloqueado pelo escudo ({defensor_obj['ca']})."
+        elif total_ataque < ca_defensor:
+            return f"🛡️ **DEFESA!** Bloqueado pelo escudo ({ca_defensor})."
         elif rolagem_acerto == 20:
-            dano_final *= 2
+            dano_final = dano_base * 2  # Crítico ignora CA
             defensor_obj["pv"] -= dano_final
             return f"🌟 **GLÓRIA!** Crítico! {defensor_obj['nome']} sofreu **{dano_final}**!"
         else:
@@ -34,26 +36,37 @@ class BatalhaView(discord.ui.View):
 
     @discord.ui.button(label="Atacar", style=discord.ButtonStyle.danger, emoji="⚔️")
     async def ataque_basico(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if str(interaction.user.id) != self.turno:
-            return await interaction.response.send_message("🐾 **Lulu:** Sua vez não chegou!", ephemeral=True)
+        try:
+            if str(interaction.user.id) != self.turno:
+                return await interaction.response.send_message("🐾 **Lulu:** Sua vez não chegou!", ephemeral=True)
 
-        ativo = self.p1 if str(interaction.user.id) == self.p1["user_id"] else self.p2
-        alvo = self.p2 if ativo == self.p1 else self.p1
+            ativo = self.p1 if str(interaction.user.id) == self.p1["user_id"] else self.p2
+            alvo = self.p2 if ativo == self.p1 else self.p1
 
-        # Dano escalonado pelo dado do nível
-        dano = rolar_dado(ativo.get("dado_nivel", "1d6")) + ativo["atributos"]["forca"]
-        log = await self.processar_dano(interaction, ativo, alvo, dano, ativo["atributos"]["agilidade"])
-        
-        salvar_dados(self.dados)
-        self.turno = alvo["user_id"]
+            # Pega atributos com valores padrão
+            atributos = ativo.get("atributos", {})
+            forca = atributos.get("forca", 0)
+            agilidade = atributos.get("agilidade", 0)
 
-        status = f"\n💀 **{alvo['nome']} CAIU!**" if alvo["pv"] <= 0 else ""
-        if alvo["pv"] <= 0: self.stop()
+            # Dano escalonado pelo dado do nível (rolar_dado retorna tupla: resultado, lista, modo)
+            resultado_dado, _, _ = rolar_dado(ativo.get("dado_nivel", "1d6"))
+            dano = resultado_dado + forca
+            log = self.processar_dano(ativo, alvo, dano, agilidade)
+            
+            salvar_dados(self.dados)
+            self.turno = alvo["user_id"]
 
-        embed = discord.Embed(title="Arena", description=log + status, color=0xff0000)
-        embed.add_field(name=self.p1["nome"], value=f"❤️ {self.p1['pv']} PV")
-        embed.add_field(name=self.p2["nome"], value=f"❤️ {self.p2['pv']} PV")
-        await interaction.response.edit_message(embed=embed, view=None if status else self)
+            status = f"\n💀 **{alvo['nome']} CAIU!**" if alvo["pv"] <= 0 else ""
+            if alvo["pv"] <= 0: 
+                self.stop()
+
+            embed = discord.Embed(title="⚔️ Arena ⚔️", description=log + status, color=0xff0000)
+            embed.add_field(name=self.p1["nome"], value=f"❤️ {self.p1['pv']} PV")
+            embed.add_field(name=self.p2["nome"], value=f"❤️ {self.p2['pv']} PV")
+            await interaction.response.edit_message(embed=embed, view=None if status else self)
+        except Exception as e:
+            print(f"Erro no combate: {e}")
+            await interaction.response.send_message(f"🐾 **Lulu:** Algo deu errado no combate! Erro: {e}", ephemeral=True)
 
 class Combate(commands.Cog):
     def __init__(self, bot):
