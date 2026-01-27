@@ -4,15 +4,45 @@ import asyncio
 import json
 import random
 import os, time
+import sys
 from dotenv import load_dotenv
 
-from cogs.logic import processar_xp_acumulado
-from database import carregar_dados, salvar_dados
-from mecanicas import adicionar_xp 
-from views import MenuRPG 
+# Força flush imediato dos prints (importante para Render)
+print("🚀 Iniciando bot...", flush=True)
 
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
+
+if not TOKEN:
+    print("❌ ERRO: TOKEN não encontrado no ambiente!", flush=True)
+    sys.exit(1)
+
+print(f"✅ Token carregado (primeiros 10 chars): {TOKEN[:10]}...", flush=True)
+
+# Testa imports
+try:
+    from cogs.logic import processar_xp_acumulado
+    print("✅ cogs.logic importado", flush=True)
+except Exception as e:
+    print(f"❌ Erro ao importar cogs.logic: {e}", flush=True)
+
+try:
+    from database import carregar_dados, salvar_dados
+    print("✅ database importado", flush=True)
+except Exception as e:
+    print(f"❌ Erro ao importar database: {e}", flush=True)
+
+try:
+    from mecanicas import adicionar_xp 
+    print("✅ mecanicas importado", flush=True)
+except Exception as e:
+    print(f"❌ Erro ao importar mecanicas: {e}", flush=True)
+
+try:
+    from views import MenuRPG
+    print("✅ views importado", flush=True)
+except Exception as e:
+    print(f"❌ Erro ao importar views: {e}", flush=True)
 
 # --- CONFIGURAÇÃO ---
 intents = discord.Intents.all()
@@ -35,6 +65,14 @@ async def load_extensions():
 async def on_ready():
     await bot.tree.sync()
     print(f"🐾 Mestre Lulu online como {bot.user}")
+    # Inicia keep-alive loop
+    bot.loop.create_task(keep_alive_loop())
+
+async def keep_alive_loop():
+    """Mantém o bot ativo logando a cada 10 minutos."""
+    while True:
+        await asyncio.sleep(600)  # 10 minutos
+        print(f"💓 Keep-alive: Bot ainda online - {time.strftime('%H:%M:%S')}")
 
 @bot.command()
 async def menu(ctx):
@@ -122,13 +160,22 @@ async def run_web_server():
     print(f"🌐 Servidor HTTP rodando na porta {port}")
 
 async def main():
-    async with bot:
-        await load_extensions()
-        # Inicia o servidor web em paralelo com o bot
-        await run_web_server()
-        await bot.start(TOKEN)  
+    print("🔄 Entrando em main()...", flush=True)
+    try:
+        async with bot:
+            print("🔄 Carregando extensões...", flush=True)
+            await load_extensions()
+            print("🔄 Iniciando servidor web...", flush=True)
+            await run_web_server()
+            print("🔄 Iniciando bot Discord...", flush=True)
+            await bot.start(TOKEN)
+    except Exception as e:
+        print(f"❌ ERRO FATAL em main(): {e}", flush=True)
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
+    print("🔄 Executando asyncio.run(main())...", flush=True)
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
