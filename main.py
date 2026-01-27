@@ -103,9 +103,29 @@ async def sync(ctx):
     await bot.tree.sync()
     await ctx.send("Comandos sincronizados!")
 
+# === SERVIDOR HTTP FAKE PARA RENDER ===
+from aiohttp import web
+
+async def health_check(request):
+    return web.Response(text="🐾 Mestre Lulu está online!")
+
+async def run_web_server():
+    app = web.Application()
+    app.router.add_get("/", health_check)
+    app.router.add_get("/health", health_check)
+    
+    port = int(os.getenv("PORT", 8080))
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    print(f"🌐 Servidor HTTP rodando na porta {port}")
+
 async def main():
     async with bot:
-        await load_extensions() 
+        await load_extensions()
+        # Inicia o servidor web em paralelo com o bot
+        await run_web_server()
         await bot.start(TOKEN)  
 
 if __name__ == "__main__":
