@@ -7,7 +7,6 @@ import os, time
 import sys
 from dotenv import load_dotenv
 
-# Força flush imediato dos prints (importante para Render)
 print("🚀 Iniciando bot...", flush=True)
 
 load_dotenv()
