@@ -22,3 +22,4 @@ mongodbPass.txt
 chave_ssh_public
 chave_ssh.ppk
 comandos.txt
+migrar_elandor.py
