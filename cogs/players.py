@@ -14,6 +14,10 @@ from cogs.logic import (
 import random
 import datetime
 
+def get_guild_id(ctx):
+    """Obtém o guild_id do contexto, retorna None se for DM."""
+    return str(ctx.guild.id) if ctx.guild else None
+
 class Players(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -21,8 +25,12 @@ class Players(commands.Cog):
     @commands.hybrid_command(name="ficha", description="Mostra sua ficha de personagem")
     async def ficha(self, ctx, alvo: discord.Member = None):
         try:
+            if not ctx.guild:
+                return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+            
+            guild_id = get_guild_id(ctx)
             alvo = alvo or ctx.author
-            p = carregar_usuario(str(alvo.id))
+            p = carregar_usuario(guild_id, str(alvo.id))
             if not p: 
                 return await ctx.send("🐾 **Lulu:** Sem ficha.")
 
@@ -68,8 +76,12 @@ class Players(commands.Cog):
 
     @commands.hybrid_command(name="descansar", description="Recupera pontos de vida usando descansos")
     async def descansar(self, ctx):
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
         user_id = str(ctx.author.id)
-        dados = carregar_dados()
+        dados = carregar_dados(guild_id)
         p = dados["usuarios"].get(user_id)
         
         if not p: 
@@ -115,13 +127,17 @@ class Players(commands.Cog):
             color=0x2c3e50
         )
     
-        salvar_dados(dados)
+        salvar_dados(guild_id, dados)
         await ctx.send(embed=embed)
 
     @commands.hybrid_command(name="trabalhar", description="Trabalhe para ganhar Krugs K$")
     async def trabalhar(self, ctx):
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
         user_id = str(ctx.author.id)
-        dados = carregar_dados()
+        dados = carregar_dados(guild_id)
         p = dados["usuarios"].get(user_id)
         
         if not p: 
@@ -157,7 +173,7 @@ class Players(commands.Cog):
         ]
         servico = random.choice(profissoes)
 
-        salvar_dados(dados)
+        salvar_dados(guild_id, dados)
         
         await ctx.send(
             f"💼 **{p['nome']}** {servico} e recebeu **{ganhos} K$**!\n"
@@ -166,7 +182,11 @@ class Players(commands.Cog):
 
     @commands.hybrid_command(name="inventario", description="Mostra seu inventário e saldo")
     async def inventario(self, ctx):
-        p = carregar_dados()["usuarios"].get(str(ctx.author.id))
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
+        p = carregar_dados(guild_id)["usuarios"].get(str(ctx.author.id))
         if not p: return await ctx.send("🐾 **Lulu:** Registre-se.")
         inv = ", ".join(p["inventario"]) if p["inventario"] else "Vazio"
         await ctx.send(embed=discord.Embed(title=f"🎒 {ctx.author.name}", description=f"**Itens:** {inv}\n**Saldo:** {p['dinheiro']} Krugs"))
@@ -187,8 +207,12 @@ class Players(commands.Cog):
         self, interaction: discord.Interaction, current: str
     ) -> list[discord.app_commands.Choice[str]]:
         """Autocomplete que mostra os itens bebíveis do inventário do jogador."""
+        if not interaction.guild:
+            return []
+        
+        guild_id = str(interaction.guild.id)
         user_id = str(interaction.user.id)
-        dados = carregar_dados()
+        dados = carregar_dados(guild_id)
         p = dados["usuarios"].get(user_id)
         
         if not p:
@@ -213,8 +237,12 @@ class Players(commands.Cog):
     @commands.hybrid_command(name="beber", description="Usa um item do inventário")
     @discord.app_commands.autocomplete(item=beber_autocomplete)
     async def beber(self, ctx, *, item: str):
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
         user_id = str(ctx.author.id)
-        dados = carregar_dados()
+        dados = carregar_dados(guild_id)
         p = dados["usuarios"].get(user_id)
         
         if not p:
@@ -232,13 +260,13 @@ class Players(commands.Cog):
 
         if item_real == "Poção da Sorte":
             res, _ = usar_pocao_sorte(p)
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
             return await ctx.send(res)
 
         elif item_real == "Poção do Tempo Velado":
             cura = random.randint(1, 10)
             p["pv"] = min(pv_max, p["pv"] + cura)
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
             return await ctx.send(f"⏳ **Tempo manipulado!** Recuperou **+{cura} PV**. ❤️ Vida: {p['pv']}/{pv_max}")
 
         elif item_real == "Poção do Quase Milagre":
@@ -249,7 +277,7 @@ class Players(commands.Cog):
             else:
                 msg = f"✨ **Milagre!** Recuperou **+{cura} PV**."
             p["pv"] = min(pv_max, p["pv"] + cura)
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
             return await ctx.send(f"{msg} ❤️ Vida: {p['pv']}/{pv_max}")
 
         elif item_real == "Frascos de Alquimia Errante":
@@ -265,39 +293,43 @@ class Players(commands.Cog):
                 "Seu cabelo ficou em pé por um instante."
             ]
             efeito = random.choice(efeitos_colaterais)
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
             return await ctx.send(f"🧪 **Alquimia Errante!** Recuperou **+{cura} PV**. ❤️ Vida: {p['pv']}/{pv_max}\n*Efeito colateral: {efeito}*")
 
         elif item_real == "Sangue do Cupido":
             p["buff_dt"] = p.get("buff_dt", 0) - 2
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
             return await ctx.send("🩸 **Sangue do Cupido consumido!** Seu próximo teste terá **-2 na DT**.")
 
         elif item_real == "Poção do Amor":
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
             return await ctx.send("💖 **Poção do Amor bebida!** Por um dia, você emana uma aura de fascínio irresistível. Use com sabedoria (ou não).")
 
         elif item_real == "Poção do Esquecimento":
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
             return await ctx.send("☁️ **Poção do Esquecimento bebida!** Você pode apagar uma lembrança específica de alguém (ou sua). Converse com o Mestre.")
 
         elif item_real == "Poção da Raiva":
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
             return await ctx.send("💢 **Poção da Raiva bebida!** Por um dia, você sente uma fúria ardente. +2 de dano em ataques corpo-a-corpo, mas -2 em testes de Carisma.")
 
         elif item_real == "Poção da Verdade":
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
             return await ctx.send("👁️ **Poção da Verdade bebida!** Quem beber não conseguirá mentir. Ideal para interrogatórios... ou confissões.")
 
         # Fallback (não deve chegar aqui)
         else:
             p["inventario"].append(item_real)
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
             return await ctx.send("🐾 **Lulu:** Algo deu errado ao consumir isso.")
 
     @commands.hybrid_command(name="historico", description="Mostra as últimas missões")
     async def historico(self, ctx):
-        missoes = carregar_dados().get("missoes", [])[-5:]
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
+        missoes = carregar_dados(guild_id).get("missoes", [])[-5:]
         if not missoes: return await ctx.send("🐾 **Lulu:** Sem história.")
         txt = "\n".join([f"🔹 **{m['missao']}**: {', '.join(m['herois'])}" for m in reversed(missoes)])
         await ctx.send(embed=discord.Embed(title="📖 Crônicas", description=txt))
@@ -357,8 +389,12 @@ class Players(commands.Cog):
         - Atributo 2: Rola 2d20 e pega o MAIOR (vantagem)
         - Atributo 3+: Rola 3d20 e pega o MAIOR (super vantagem)
         """
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
         user_id = str(ctx.author.id)
-        dados = carregar_dados()
+        dados = carregar_dados(guild_id)
         p = dados["usuarios"].get(user_id)
         
         if not p:
@@ -379,7 +415,7 @@ class Players(commands.Cog):
             mod_total -= 5
             azar_msg = "⚠️ **O Azar te atingiu! (-5 no resultado)**\n\n"
             p["azarado"] = False
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
         
         resultado = rolar_teste_atributo(valor_atributo, mod_total)
         

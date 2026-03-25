@@ -5,13 +5,18 @@ from database import carregar_dados, salvar_dados
 from cogs.logic import rolar_dado
 from utils import eh_admin
 
+def get_guild_id(ctx):
+    """Obtém o guild_id do contexto, retorna None se for DM."""
+    return str(ctx.guild.id) if ctx.guild else None
+
 class BatalhaView(discord.ui.View):
-    def __init__(self, mestre, atacante, defensor, dados_globais):
+    def __init__(self, mestre, atacante, defensor, dados_globais, guild_id):
         super().__init__(timeout=300)
         self.mestre = mestre
         self.p1 = atacante 
         self.p2 = defensor 
         self.dados = dados_globais
+        self.guild_id = guild_id
         self.turno = atacante["user_id"]
 
     def processar_dano(self, atacante_obj, defensor_obj, dano_base, bonus_atk):
@@ -53,7 +58,7 @@ class BatalhaView(discord.ui.View):
             dano = resultado_dado + forca
             log = self.processar_dano(ativo, alvo, dano, agilidade)
             
-            salvar_dados(self.dados)
+            salvar_dados(self.guild_id, self.dados)
             self.turno = alvo["user_id"]
 
             status = f"\n💀 **{alvo['nome']} CAIU!**" if alvo["pv"] <= 0 else ""
@@ -77,8 +82,12 @@ class Combate(commands.Cog):
         """Inicia um duelo entre dois jogadores usando a BatalhaView."""
         if not eh_admin(ctx): 
             return await ctx.send("🐾 **Lulu:** Apenas mestres podem abrir a arena.")
-                
-        dados = carregar_dados()
+        
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
+        dados = carregar_dados(guild_id)
         p1 = dados["usuarios"].get(str(op1.id))
         p2 = dados["usuarios"].get(str(op2.id))
 
@@ -88,7 +97,7 @@ class Combate(commands.Cog):
         # Injeta IDs para a View saber quem é quem
         p1["user_id"], p2["user_id"] = str(op1.id), str(op2.id)
 
-        view = BatalhaView(ctx.author, p1, p2, dados)
+        view = BatalhaView(ctx.author, p1, p2, dados, guild_id)
             
         embed = discord.Embed(
             title="⚔️ ARENA DE OCULTA ⚔️",

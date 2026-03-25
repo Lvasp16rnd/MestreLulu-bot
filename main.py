@@ -75,6 +75,9 @@ async def keep_alive_loop():
 
 @bot.command()
 async def menu(ctx):
+    if not ctx.guild:
+        return await ctx.reply("🐾 **Lulu:** Este comando só funciona em servidores!")
+    
     if ctx.author.id in usuarios_em_menu:
         return await ctx.reply("🐾 **Lulu:** Você já tem um menu aberto!")
     
@@ -92,12 +95,19 @@ async def menu(ctx):
 @bot.event
 async def on_message(message):
     if message.author.bot: return
+    if not message.guild: 
+        await bot.process_commands(message)
+        return
 
+    guild_id = str(message.guild.id)
     user_id = str(message.author.id)
     agora = time.time()
     
-    if agora - cooldown_xp.get(user_id, 0) > 60:
-        dados = carregar_dados()
+    # Usa uma chave única por guild + user para o cooldown
+    cooldown_key = f"{guild_id}_{user_id}"
+    
+    if agora - cooldown_xp.get(cooldown_key, 0) > 60:
+        dados = carregar_dados(guild_id)
         if user_id in dados["usuarios"]:
             p = dados["usuarios"][user_id]
             
@@ -122,15 +132,15 @@ async def on_message(message):
                     
                     upou = processar_xp_acumulado(p, xp_total_ganho)
                     
-                    cooldown_xp[user_id] = agora
-                    salvar_dados(dados)
+                    cooldown_xp[cooldown_key] = agora
+                    salvar_dados(guild_id, dados)
 
                     if upou:
                         await message.channel.send(f"🎊 **{p['nome']}** atingiu a meta de escrita e subiu para o nível **{p['nivel']}**!")
                     else:
                         await message.channel.send(f"📖 **RP Acumulado!** {p['nome']} completou {META_PALAVRAS} palavras relevantes e ganhou {xp_total_ganho} XP.", delete_after=10)
                 else:
-                    salvar_dados(dados)
+                    salvar_dados(guild_id, dados)
 
     await bot.process_commands(message)
 
@@ -140,7 +150,7 @@ async def sync(ctx):
     await bot.tree.sync()
     await ctx.send("Comandos sincronizados!")
 
-# === SERVIDOR HTTP FAKE PARA RENDER ===
+# === SERVIDOR HTTP OPCIONAL (HEALTHCHECK) ===
 from aiohttp import web
 
 async def health_check(request):
@@ -158,14 +168,18 @@ async def run_web_server():
     await site.start()
     print(f"🌐 Servidor HTTP rodando na porta {port}")
 
+def should_run_http_server() -> bool:
+    return os.getenv("ENABLE_HTTP_SERVER", "false").lower() in {"1", "true", "yes", "on"}
+
 async def main():
     print("🔄 Entrando em main()...", flush=True)
     try:
         async with bot:
             print("🔄 Carregando extensões...", flush=True)
             await load_extensions()
-            print("🔄 Iniciando servidor web...", flush=True)
-            await run_web_server()
+            if should_run_http_server():
+                print("🔄 Iniciando servidor web opcional...", flush=True)
+                await run_web_server()
             print("🔄 Iniciando bot Discord...", flush=True)
             await bot.start(TOKEN)
     except Exception as e:

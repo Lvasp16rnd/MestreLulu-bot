@@ -8,6 +8,10 @@ import random
 
 from utils import eh_admin
 
+def get_guild_id(ctx):
+    """Obtém o guild_id do contexto, retorna None se for DM."""
+    return str(ctx.guild.id) if ctx.guild else None
+
 class Mestre(commands.Cog):    
     def __init__(self, bot):
         self.bot = bot
@@ -16,8 +20,12 @@ class Mestre(commands.Cog):
     async def upar(self, ctx, alvo: discord.Member, n: int = 1):
         if not eh_admin(ctx): 
             return await ctx.send("🐾 **Lulu:** Você não tem autoridade para isso!")
-            
-        dados = carregar_dados()
+        
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
+        dados = carregar_dados(guild_id)
         p = dados["usuarios"].get(str(alvo.id))
         
         if p:
@@ -47,7 +55,7 @@ class Mestre(commands.Cog):
                 p["xp"] = 0
                 p["xp_max"] = 0
             
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
             
             xp_atual = p.get("xp", 0)
             xp_max = p["xp_max"]
@@ -76,9 +84,13 @@ class Mestre(commands.Cog):
         if not eh_admin(ctx): 
             return await ctx.send("🐾 **Lulu:** Você não tem autoridade para distribuir conhecimento.")
 
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+
         await ctx.defer()
         
-        dados = carregar_dados()
+        guild_id = get_guild_id(ctx)
+        dados = carregar_dados(guild_id)
         p = dados["usuarios"].get(str(alvo.id))
         
         if not p:
@@ -96,7 +108,7 @@ class Mestre(commands.Cog):
             p["xp"] = 0
             p["xp_max"] = 0
         
-        salvar_dados(dados)
+        salvar_dados(guild_id, dados)
         
         if upou:
             embed = discord.Embed(
@@ -120,13 +132,17 @@ class Mestre(commands.Cog):
         if not eh_admin(ctx): 
             return await ctx.send("🐾 **Lulu:** Você não tem autoridade para isso!")
         
-        dados = carregar_dados()
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
+        dados = carregar_dados(guild_id)
         
         for user_id in dados["usuarios"]:
             p = dados["usuarios"][user_id]
             p["descansos"] = p.get("descansos", 0) + quantidade
         
-        salvar_dados(dados)
+        salvar_dados(guild_id, dados)
         await ctx.send(f"🐾 **Lulu:** Recuperei o fôlego de todos! Adicionei **{quantidade}** carga(s) de descanso para o grupo.")
 
     @commands.hybrid_command(name="lulu_azar", description="Amaldiçoa um jogador com azar (-5 na próxima rolagem) (ADMs apenas)")
@@ -134,19 +150,27 @@ class Mestre(commands.Cog):
         if not eh_admin(ctx): 
             return await ctx.send("🐾 **Lulu:** Você não tem autoridade para isso!")
         
-        dados = carregar_dados()
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
+        dados = carregar_dados(guild_id)
         p = dados["usuarios"].get(str(alvo.id))
         if p:
             p["azarado"] = True
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
             await ctx.send(f"💀 **Lulu rosnou para {alvo.name}!** A nuvem do azar agora te persegue (-5 na próxima rolagem).")
 
     @commands.hybrid_command(name="setar", description="Define atributos, nível ou XP (ADMs apenas)")
     async def setar(self, ctx, alvo: discord.Member, at: str, v: int):
         if not eh_admin(ctx): 
             return await ctx.send("🐾 **Lulu:** Você não tem autoridade para isso!")
-            
-        dados = carregar_dados()
+        
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
+        dados = carregar_dados(guild_id)
         uid = str(alvo.id)
         
         if uid in dados["usuarios"]:
@@ -192,7 +216,7 @@ class Mestre(commands.Cog):
                 p[atributo] = v
                 msg = f"✅ Campo {at} de {alvo.name} setado para {v}."
 
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
             await ctx.send(f"🐾 **Lulu:** {msg}")
         else:
             await ctx.send("🐾 **Lulu:** Usuário não encontrado.")
@@ -201,6 +225,11 @@ class Mestre(commands.Cog):
     async def concluir_missao(self, ctx):
         if not eh_admin(ctx): 
             return await ctx.send("🐾 **Lulu:** Você não tem autoridade para isso!")
+        
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
         
         def check(m): return m.author == ctx.author and m.channel == ctx.channel
         try:
@@ -216,12 +245,12 @@ class Mestre(commands.Cog):
             msg_valor = await self.bot.wait_for("message", timeout=30, check=check)
             valor = int(msg_valor.content)
 
-            dados = carregar_dados()
+            dados = carregar_dados(guild_id)
             for h in herois:
                 if str(h.id) in dados["usuarios"]: 
                     dados["usuarios"][str(h.id)]["dinheiro"] += valor
             
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
             await ctx.send(f"📜 Missão '{nome}' salva!")
         except Exception as e: 
             print(e)
@@ -230,7 +259,12 @@ class Mestre(commands.Cog):
     @commands.hybrid_command(name="sorteio_missao", description="Sorteia uma equipe diversificada para uma missão (ADMs apenas)")
     async def sorteio_missao(self, ctx):
         if not eh_admin(ctx): return
-        dados = carregar_dados()
+        
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
+        dados = carregar_dados(guild_id)
         candidatos = list(dados["usuarios"].values())
         random.shuffle(candidatos)
         equipe, racas = [], set()
@@ -251,7 +285,11 @@ class Mestre(commands.Cog):
         if not eh_admin(ctx):
             return await ctx.send("🐾 **Lulu:** Apenas mestres podem invocar eventos catastróficos!")
         
-        dados = carregar_dados()
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
+        dados = carregar_dados(guild_id)
         if not dados.get("usuarios"):
             return await ctx.send("🐾 **Lulu:** Não há ninguém no mundo para sofrer este evento.")
 
@@ -271,7 +309,7 @@ class Mestre(commands.Cog):
                 log_dano, morto = aplicar_dano_complexo(p, dano)
                 resumo.append(f"❌ **{p['nome']}** falhou! {log_dano}")
 
-        salvar_dados(dados)
+        salvar_dados(guild_id, dados)
         
         embed = discord.Embed(
             title="⚠️ O Destino se Manifesta!",

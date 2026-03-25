@@ -5,14 +5,22 @@ import constantes
 from views import LojaView, SelecaoRacaView, DistribuiPontosView
 from utils import eh_admin
 
+def get_guild_id(ctx):
+    """Obtém o guild_id do contexto, retorna None se for DM."""
+    return str(ctx.guild.id) if ctx.guild else None
+
 class Sistema(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
     @commands.hybrid_command(name="registrar", description="Registra um novo jogador no sistema")
     async def registrar(self, ctx):
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
         user_id = str(ctx.author.id)
-        dados = carregar_dados()
+        dados = carregar_dados(guild_id)
         if user_id in dados["usuarios"]:
             return await ctx.send("🐾 **Mestre Lulu:** Tu já tens uma ficha.")
 
@@ -53,15 +61,19 @@ class Sistema(commands.Cog):
             "inventario": []
         }
         
-        salvar_dados(dados)
+        salvar_dados(guild_id, dados)
         await msg.edit(content=f"✨ **Mestre Lulu:** Ficha de {ctx.author.name} gravada! Bem-vindo ao RPG.", embed=None, view=None)
 
     @commands.hybrid_command(name="loja", description="Mostra a loja de itens disponíveis")
     async def loja(self, ctx):
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
         await ctx.defer() 
         
         try:
-            dados = carregar_dados()
+            guild_id = get_guild_id(ctx)
+            dados = carregar_dados(guild_id)
             import copy
             cat = copy.deepcopy(constantes.LOJA_ITENS)
             
@@ -72,7 +84,7 @@ class Sistema(commands.Cog):
                     else: 
                         cat[c] = it
             
-            await ctx.send("🐾 **Mestre Lulu:** Não toque em nada, ou vai perder um dedo.", view=LojaView(cat))
+            await ctx.send("🐾 **Mestre Lulu:** Não toque em nada, ou vai perder um dedo.", view=LojaView(cat, guild_id))
             
         except Exception as e:
             print(f"Erro na loja: {e}")

@@ -41,15 +41,16 @@ class LojaCompraSelect(discord.ui.Select):
                 pass
 
 class ItensView(discord.ui.View):
-    def __init__(self, catalogo):
+    def __init__(self, catalogo, guild_id):
         super().__init__(timeout=60)
         self.catalogo = catalogo
+        self.guild_id = guild_id
 
     async def processar_compra(self, interaction, item_nome, item_info):
         try:
             print(f"[DEBUG] processar_compra iniciado para item: {item_nome}")
             user_id = str(interaction.user.id)
-            dados = carregar_dados()
+            dados = carregar_dados(self.guild_id)
             player = dados["usuarios"].get(user_id)
 
             if not player:
@@ -65,7 +66,7 @@ class ItensView(discord.ui.View):
                         inv.remove("Asa de Fada")
                         inv.remove("Olho de Dragão")
                         inv.append("Marca da Exclusão")
-                        salvar_dados(dados)
+                        salvar_dados(self.guild_id, dados)
                         return await interaction.followup.send("🔥 **Ritual concluído!** A Marca arde em sua pele.", ephemeral=True)
                     return await interaction.followup.send("⚠️ Você já tem a Marca.", ephemeral=True)
                 return await interaction.followup.send("❌ **Sereth Vaul:** 'Traga os ingredientes!'", ephemeral=True)
@@ -76,7 +77,7 @@ class ItensView(discord.ui.View):
             if player.get("dinheiro", 0) >= preco:
                 player["dinheiro"] -= preco
                 player.setdefault("inventario", []).append(item_nome)
-                salvar_dados(dados)
+                salvar_dados(self.guild_id, dados)
                 print(f"[DEBUG] Compra realizada! Novo saldo: {player['dinheiro']}")
                 await interaction.followup.send(f"✅ **Lulu:** Você adquiriu `{item_nome}`!", ephemeral=True)
             else:
@@ -92,9 +93,10 @@ class ItensView(discord.ui.View):
                 pass
 
 class LojaView(discord.ui.View):
-    def __init__(self, catalogo):
+    def __init__(self, catalogo, guild_id):
         super().__init__(timeout=60)
         self.catalogo = catalogo
+        self.guild_id = guild_id
 
     @discord.ui.select(
         placeholder="Escolha a ala da loja...",
@@ -112,7 +114,7 @@ class LojaView(discord.ui.View):
         categoria = select.values[0]
         itens = self.catalogo.get(categoria, {})
         
-        view = ItensView(self.catalogo) 
+        view = ItensView(self.catalogo, self.guild_id) 
         view.add_item(LojaCompraSelect(itens))
         
         embed = discord.Embed(title=f"Loja: {categoria.capitalize()}", color=discord.Color.gold())
@@ -125,10 +127,15 @@ class MenuRPG(discord.ui.View):
     def __init__(self, ctx):
         super().__init__(timeout=60)
         self.ctx = ctx
+        self.guild_id = str(ctx.guild.id) if ctx.guild else None
         user_id = str(ctx.author.id)
-        dados = carregar_dados()
         
-        self.tem_ficha = user_id in dados["usuarios"]
+        if self.guild_id:
+            dados = carregar_dados(self.guild_id)
+            self.tem_ficha = user_id in dados["usuarios"]
+        else:
+            self.tem_ficha = False
+        
         self.ajustar_botoes()
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:

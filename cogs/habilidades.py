@@ -6,13 +6,17 @@ from database import carregar_dados, salvar_dados
 import constantes
 from habilidades_logic import processar_uso_habilidade 
 
+def get_guild_id(ctx):
+    """Obtém o guild_id do contexto, retorna None se for DM."""
+    return str(ctx.guild.id) if ctx.guild else None
+
 class Habilidades(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    def _obter_habilidades_usuario(self, user_id: str) -> list[str]:
+    def _obter_habilidades_usuario(self, guild_id: str, user_id: str) -> list[str]:
         """Retorna a lista de habilidades disponíveis para o usuário baseado em raça e nível."""
-        dados = carregar_dados()
+        dados = carregar_dados(guild_id)
         p = dados["usuarios"].get(user_id)
         
         if not p:
@@ -37,8 +41,12 @@ class Habilidades(commands.Cog):
         self, interaction: discord.Interaction, current: str
     ) -> list[discord.app_commands.Choice[str]]:
         """Autocomplete que mostra as habilidades disponíveis do jogador."""
+        if not interaction.guild:
+            return []
+        
+        guild_id = str(interaction.guild.id)
         user_id = str(interaction.user.id)
-        habilidades = self._obter_habilidades_usuario(user_id)
+        habilidades = self._obter_habilidades_usuario(guild_id, user_id)
         
         opcoes = [
             discord.app_commands.Choice(name=hab, value=hab)
@@ -52,8 +60,12 @@ class Habilidades(commands.Cog):
     @discord.app_commands.describe(habilidade="Nome da habilidade (deixe vazio para ver a lista)")
     @discord.app_commands.autocomplete(habilidade=habilidade_autocomplete)
     async def usar(self, ctx, *, habilidade: str = None):
+        if not ctx.guild:
+            return await ctx.send("🐾 **Lulu:** Este comando só funciona em servidores!")
+        
+        guild_id = get_guild_id(ctx)
         user_id = str(ctx.author.id)
-        dados = carregar_dados()
+        dados = carregar_dados(guild_id)
         p = dados["usuarios"].get(user_id)
         
         if not p: 
@@ -147,7 +159,7 @@ class Habilidades(commands.Cog):
             if res["logs"]:
                 embed.add_field(name="🎒 Itens Utilizados", value="\n".join([f"• {log}" for log in res["logs"]]), inline=False)
 
-            salvar_dados(dados)
+            salvar_dados(guild_id, dados)
             await ctx.send(embed=embed)
 
         except Exception as e:
